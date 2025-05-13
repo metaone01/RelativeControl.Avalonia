@@ -121,25 +121,25 @@ public static class Extensions {
 public interface IRelativeLength {
     public double ActualPixels { get; }
 
-    public static virtual bool operator <(IRelativeLength a, IRelativeLength b) => a.ActualPixels < b.ActualPixels;
-    public static virtual bool operator >(IRelativeLength a, IRelativeLength b) => a.ActualPixels > b.ActualPixels;
-    public static virtual bool operator <(double a, IRelativeLength b) => a < b.ActualPixels;
-    public static virtual bool operator >(double a, IRelativeLength b) => a > b.ActualPixels;
-    public static virtual bool operator <(IRelativeLength a, double b) => a.ActualPixels < b;
-    public static virtual bool operator >(IRelativeLength a, double b) => a.ActualPixels > b;
+    public static virtual bool operator <(IRelativeLength a, IRelativeLength b) {
+        return a.ActualPixels < b.ActualPixels;
+    }
+
+    public static virtual bool operator >(IRelativeLength a, IRelativeLength b) {
+        return a.ActualPixels > b.ActualPixels;
+    }
+
+    public static virtual bool operator <(double a, IRelativeLength b) { return a < b.ActualPixels; }
+
+    public static virtual bool operator >(double a, IRelativeLength b) { return a > b.ActualPixels; }
+
+    public static virtual bool operator <(IRelativeLength a, double b) { return a.ActualPixels < b; }
+
+    public static virtual bool operator >(IRelativeLength a, double b) { return a.ActualPixels > b; }
 }
 
 public sealed class RelativeLengthMerge : IRelativeLength, IEquatable<RelativeLengthMerge> {
-    public List<RelativeLength> Children { get; private set; } = [];
-
-    public double Multiplier { get; private set; } = 1;
     private double _actualPixels;
-    public double ActualPixels => _actualPixels * Multiplier;
-
-    private void Update(double oldActualPixels, double newActualPixels) {
-        _actualPixels -= oldActualPixels;
-        _actualPixels += newActualPixels;
-    }
 
     public RelativeLengthMerge(params List<RelativeLength> subLengths) {
         Children = subLengths;
@@ -167,6 +167,21 @@ public sealed class RelativeLengthMerge : IRelativeLength, IEquatable<RelativeLe
         }
     }
 
+    public List<RelativeLength> Children { get; private set; } = [];
+
+    public double Multiplier { get; private set; } = 1;
+
+    public bool Equals(RelativeLengthMerge? other) {
+        return other is not null && Children == other.Children && Math.Abs(Multiplier - other.Multiplier) < 1e-5;
+    }
+
+    public double ActualPixels => _actualPixels * Multiplier;
+
+    private void Update(double oldActualPixels, double newActualPixels) {
+        _actualPixels -= oldActualPixels;
+        _actualPixels += newActualPixels;
+    }
+
     public void Add(RelativeLength right) { Children.Add(right); }
 
     public void Add(RelativeLengthMerge right) { Children.AddRange(right.Children); }
@@ -174,10 +189,6 @@ public sealed class RelativeLengthMerge : IRelativeLength, IEquatable<RelativeLe
     public void Remove(RelativeLength right) { Children.Remove(right); }
 
     public void Remove(RelativeLengthMerge right) { Children = Children.Except(right.Children).ToList(); }
-
-    public bool Equals(RelativeLengthMerge? other) {
-        return other is not null && Children == other.Children && Math.Abs(Multiplier - other.Multiplier) < 1e-5;
-    }
 
     public override bool Equals(object? obj) { return obj is RelativeLengthMerge other && Equals(other); }
     public override int GetHashCode() { return HashCode.Combine(this); }
@@ -202,23 +213,16 @@ public sealed class RelativeLengthMerge : IRelativeLength, IEquatable<RelativeLe
     }
 
     ~RelativeLengthMerge() {
-        foreach (RelativeLength length in Children) {
+        foreach (RelativeLength length in Children)
             length.OnRelativeLengthChanged -= Update;
-        }
     }
 }
 
 public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
-    private Visual? _source;
-    public readonly Units Unit;
-    public double Value { get; private set; }
-    public double ActualPixels { get; private set; }
-
-    public double Absolute() => ActualPixels;
-
     public delegate void RelativeLengthChanged(double oldActualPixels, double newActualPixels);
 
-    public event RelativeLengthChanged? OnRelativeLengthChanged;
+    public readonly Units Unit;
+    private Visual? _source;
 
     public RelativeLength(string length, Visual? control = null) {
         length = length.Trim();
@@ -229,9 +233,8 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
         }
 
         int i = length.Length - 2;
-        while (!(char.IsNumber(length[i]) || length[i] == '.')) {
+        while (!(char.IsNumber(length[i]) || length[i] == '.'))
             --i;
-        }
 
         Value   = Convert.ToDouble(length[..(i + 1)]);
         Unit    = Converters.StringToUnit(length[(i + 1)..]);
@@ -256,6 +259,18 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
             _source!.PropertyChanged += Update;
     }
 
+    public double Value { get; private set; }
+
+    public bool Equals(RelativeLength? other) {
+        return other is not null && Math.Abs(Value - other.Value) < 0.001 && Unit == other.Unit;
+    }
+
+    public double ActualPixels { get; private set; }
+
+    public double Absolute() { return ActualPixels; }
+
+    public event RelativeLengthChanged? OnRelativeLengthChanged;
+
 
     private Visual? GetSource(Visual? visual) {
         return Unit switch {
@@ -274,13 +289,9 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
         };
     }
 
-    public void SetTarget(Visual? target = null) {
-        _source = GetSource(target);
-    }
+    public void SetTarget(Visual? target = null) { _source = GetSource(target); }
 
-    public void SetSource(Visual? source = null) {
-        _source = source;
-    }
+    public void SetSource(Visual? source = null) { _source = source; }
 
     public void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? e = null) {
         double oldActualPixels = ActualPixels;
@@ -316,12 +327,9 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
         return new RelativeLengthMerge(left, right);
     }
 
-    public static RelativeLength Min(RelativeLength left, RelativeLength right) => left < right ? left : right;
-    public static RelativeLength Max(RelativeLength left, RelativeLength right) => left > right ? left : right;
+    public static RelativeLength Min(RelativeLength left, RelativeLength right) { return left < right ? left : right; }
 
-    public bool Equals(RelativeLength? other) {
-        return other is not null && Math.Abs(Value - other.Value) < 0.001 && Unit == other.Unit;
-    }
+    public static RelativeLength Max(RelativeLength left, RelativeLength right) { return left > right ? left : right; }
 
     public override bool Equals(object? obj) { return obj is RelativeLength other && Equals(other); }
 
@@ -329,8 +337,9 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
 
     public static bool operator ==(RelativeLength a, RelativeLength b) { return a.Equals(b); }
     public static bool operator !=(RelativeLength a, RelativeLength b) { return !a.Equals(b); }
-    public static bool operator <(RelativeLength a, RelativeLength b) => a.ActualPixels < b.ActualPixels;
-    public static bool operator >(RelativeLength a, RelativeLength b) => a.ActualPixels > b.ActualPixels;
+    public static bool operator <(RelativeLength a, RelativeLength b) { return a.ActualPixels < b.ActualPixels; }
+
+    public static bool operator >(RelativeLength a, RelativeLength b) { return a.ActualPixels > b.ActualPixels; }
 
     public static RelativeLength operator +(RelativeLength left, RelativeLength right) {
         if (left.Unit.Equals(right.Unit)) {
@@ -373,9 +382,9 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
         return relativeLength;
     }
 
-    public static implicit operator RelativeLength(double value) => new(value);
+    public static implicit operator RelativeLength(double value) { return new RelativeLength(value); }
 
-    public override string ToString() => $"{Value}{Converters.UnitToString(Unit)}";
+    public override string ToString() { return $"{Value}{Converters.UnitToString(Unit)}"; }
 
     ~RelativeLength() { _source!.PropertyChanged -= Update; }
 }

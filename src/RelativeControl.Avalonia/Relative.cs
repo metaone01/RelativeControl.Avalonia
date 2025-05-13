@@ -1,52 +1,10 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Layout;
 
 namespace RelativeControl.Avalonia;
 
 public class Relative : AvaloniaObject {
-    public RelativeLength? Width {
-        get => GetValue(WidthProperty);
-        set => SetValue(WidthProperty, value);
-    }
-
-    public RelativeLength? Height {
-        get => GetValue(HeightProperty);
-        set => SetValue(HeightProperty, value);
-    }
-
-    public RelativeLength? MinWidth {
-        get => GetValue(MinWidthProperty);
-        set => SetValue(MinWidthProperty, value);
-    }
-
-    public RelativeLength? MinHeight {
-        get => GetValue(MinHeightProperty);
-        set => SetValue(MinHeightProperty, value);
-    }
-
-    public RelativeLength? MaxWidth {
-        get => GetValue(MinWidthProperty);
-        set => SetValue(MinWidthProperty, value);
-    }
-
-    public RelativeLength? MaxHeight {
-        get => GetValue(MinHeightProperty);
-        set => SetValue(MinHeightProperty, value);
-    }
-
-    public RelativeThickness? BorderThickness {
-        get => GetValue(BorderThicknessProperty);
-        set => SetValue(BorderThicknessProperty, value);
-    }
-
-    public RelativeLength? CornerRadius {
-        get => GetValue(CornerRadiusProperty);
-        set => SetValue(CornerRadiusProperty, value);
-    }
-
-
     public static readonly AttachedProperty<RelativeLength?> WidthProperty =
         AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(Width));
 
@@ -121,4 +79,46 @@ public class Relative : AvaloniaObject {
             templatedControl.CornerRadius = ncr.Absolute();
         });
     }
+
+    public RelativeLength? Width {
+        get => GetValue(WidthProperty);
+        set => SetValue(WidthProperty, value);
+    }
+
+    public RelativeLength? Height {
+        get => GetValue(HeightProperty);
+        set => SetValue(HeightProperty, value);
+    }
+
+    public RelativeLength? MinWidth {
+        get => GetValue(MinWidthProperty);
+        set => SetValue(MinWidthProperty, value);
+    }
+
+    public RelativeLength? MinHeight {
+        get => GetValue(MinHeightProperty);
+        set => SetValue(MinHeightProperty, value);
+    }
+
+    public RelativeLength? MaxWidth {
+        get => GetValue(MinWidthProperty);
+        set => SetValue(MinWidthProperty, value);
+    }
+
+    public RelativeLength? MaxHeight {
+        get => GetValue(MinHeightProperty);
+        set => SetValue(MinHeightProperty, value);
+    }
+
+    public RelativeThickness? BorderThickness {
+        get => GetValue(BorderThicknessProperty);
+        set => SetValue(BorderThicknessProperty, value);
+    }
+
+    public RelativeLength? CornerRadius {
+        get => GetValue(CornerRadiusProperty);
+        set => SetValue(CornerRadiusProperty, value);
+    }
 }
+
+public sealed class Rel : Relative;

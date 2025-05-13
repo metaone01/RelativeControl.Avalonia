@@ -1,31 +1,33 @@
 ﻿using System;
 using System.Globalization;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Avalonia;
+using Vector = Avalonia.Vector;
 
 namespace RelativeControl.Avalonia;
 
 /// <summary>
-/// Defines a size.
+///     Defines a size.
 /// </summary>
 public readonly struct RelativeSize : IEquatable<RelativeSize> {
     /// <summary>
-    /// A size representing infinity.
+    ///     A size representing infinity.
     /// </summary>
     public static readonly RelativeSize Infinity = new(double.PositiveInfinity, double.PositiveInfinity);
 
     /// <summary>
-    /// The width.
+    ///     The width.
     /// </summary>
     public readonly RelativeLength Width;
 
     /// <summary>
-    /// The height.
+    ///     The height.
     /// </summary>
     public readonly RelativeLength Height;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RelativeSize"/> structure.
+    ///     Initializes a new instance of the <see cref="RelativeSize" /> structure.
     /// </summary>
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
@@ -41,18 +43,18 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="RelativeSize"/> structure.
+    ///     Initializes a new instance of the <see cref="RelativeSize" /> structure.
     /// </summary>
     /// <param name="vector2">The vector to take values from.</param>
-    public RelativeSize(System.Numerics.Vector2 vector2) : this(vector2.X, vector2.Y) { }
+    public RelativeSize(Vector2 vector2) : this(vector2.X, vector2.Y) { }
 
     /// <summary>
-    /// Gets the aspect ratio of the size.
+    ///     Gets the aspect ratio of the size.
     /// </summary>
     public double AspectRatio => Width.ActualPixels / Height.ActualPixels;
 
     /// <summary>
-    /// Checks for equality between two <see cref="RelativeSize"/>s.
+    ///     Checks for equality between two <see cref="RelativeSize" />s.
     /// </summary>
     /// <param name="left">The first size.</param>
     /// <param name="right">The second size.</param>
@@ -60,7 +62,7 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     public static bool operator ==(RelativeSize left, RelativeSize right) { return left.Equals(right); }
 
     /// <summary>
-    /// Checks for inequality between two <see cref="Size"/>s.
+    ///     Checks for inequality between two <see cref="Size" />s.
     /// </summary>
     /// <param name="left">The first size.</param>
     /// <param name="right">The second size.</param>
@@ -68,7 +70,7 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     public static bool operator !=(RelativeSize left, RelativeSize right) { return !(left == right); }
 
     /// <summary>
-    /// Scales a size.
+    ///     Scales a size.
     /// </summary>
     /// <param name="size">The size</param>
     /// <param name="scale">The scaling factor.</param>
@@ -78,7 +80,7 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     }
 
     /// <summary>
-    /// Scales a size.
+    ///     Scales a size.
     /// </summary>
     /// <param name="size">The size</param>
     /// <param name="scale">The scaling factor.</param>
@@ -88,7 +90,7 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     }
 
     /// <summary>
-    /// Scales a size.
+    ///     Scales a size.
     /// </summary>
     /// <param name="size">The size</param>
     /// <param name="scale">The scaling factor.</param>
@@ -106,29 +108,28 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     }
 
     /// <summary>
-    /// Parses a <see cref="Size"/> string.
+    ///     Parses a <see cref="Size" /> string.
     /// </summary>
     /// <param name="s">The string.</param>
-    /// <returns>The <see cref="Size"/>.</returns>
+    /// <returns>The <see cref="Size" />.</returns>
     public static RelativeSize Parse(string s) {
-        using var tokenizer = new SpanStringTokenizer(
-            s,
-            CultureInfo.InvariantCulture,
-            exceptionMessage: "Invalid Size.");
+        using SpanStringTokenizer tokenizer = new(s, CultureInfo.InvariantCulture, "Invalid Size.");
         return new RelativeSize(tokenizer.ReadDouble(), tokenizer.ReadDouble());
     }
 
     /// <summary>
-    /// Constrains the size.
+    ///     Constrains the size.
     /// </summary>
     /// <param name="constraint">The size to constrain to.</param>
     /// <returns>The constrained size.</returns>
     public RelativeSize Constrain(RelativeSize constraint) {
-        return new RelativeSize(RelativeLength.Min(Width, constraint.Width), RelativeLength.Min(Height, constraint.Height));
+        return new RelativeSize(
+            RelativeLength.Min(Width, constraint.Width),
+            RelativeLength.Min(Height, constraint.Height));
     }
 
     /// <summary>
-    /// Deflates the size by a <see cref="Thickness"/>.
+    ///     Deflates the size by a <see cref="Thickness" />.
     /// </summary>
     /// <param name="thickness">The thickness.</param>
     /// <returns>The deflated size.</returns>
@@ -139,36 +140,36 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     }
 
     /// <summary>
-    /// Returns a boolean indicating whether the size is equal to the other given size (bitwise).
+    ///     Returns a boolean indicating whether the size is equal to the other given size (bitwise).
     /// </summary>
     /// <param name="other">The other size to test equality against.</param>
     /// <returns>True if this size is equal to other; False otherwise.</returns>
     public bool Equals(RelativeSize other) { return Width == other.Width && Height == other.Height; }
 
     /// <summary>
-    /// Returns a boolean indicating whether the size is equal to the other given size (numerically).
+    ///     Returns a boolean indicating whether the size is equal to the other given size (numerically).
     /// </summary>
     /// <param name="other">The other size to test equality against.</param>
     /// <returns>True if this size is equal to other; False otherwise.</returns>
     public bool NearlyEquals(RelativeSize other) { return Width == other.Width && Height == other.Height; }
 
     /// <summary>
-    /// Checks for equality between a size and an object.
+    ///     Checks for equality between a size and an object.
     /// </summary>
     /// <param name="obj">The object.</param>
     /// <returns>
-    /// True if <paramref name="obj"/> is a size that equals the current size.
+    ///     True if <paramref name="obj" /> is a size that equals the current size.
     /// </returns>
-    public override bool Equals(object? obj) => obj is RelativeSize other && Equals(other);
+    public override bool Equals(object? obj) { return obj is RelativeSize other && Equals(other); }
 
     /// <summary>
-    /// Returns a hash code for a <see cref="Size"/>.
+    ///     Returns a hash code for a <see cref="Size" />.
     /// </summary>
     /// <returns>The hash code.</returns>
     public override int GetHashCode() { return HashCode.Combine(Width, Height); }
 
     /// <summary>
-    /// Inflates the size by a <see cref="Thickness"/>.
+    ///     Inflates the size by a <see cref="Thickness" />.
     /// </summary>
     /// <param name="thickness">The thickness.</param>
     /// <returns>The inflated size.</returns>
@@ -178,29 +179,27 @@ public readonly struct RelativeSize : IEquatable<RelativeSize> {
     }
 
     /// <summary>
-    /// Returns a new <see cref="Size"/> with the same height and the specified width.
+    ///     Returns a new <see cref="Size" /> with the same height and the specified width.
     /// </summary>
     /// <param name="width">The width.</param>
-    /// <returns>The new <see cref="Size"/>.</returns>
+    /// <returns>The new <see cref="Size" />.</returns>
     public RelativeSize WithWidth(RelativeLength width) { return new RelativeSize(width, Height); }
 
     /// <summary>
-    /// Returns a new <see cref="Size"/> with the same width and the specified height.
+    ///     Returns a new <see cref="Size" /> with the same width and the specified height.
     /// </summary>
     /// <param name="height">The height.</param>
-    /// <returns>The new <see cref="Size"/>.</returns>
+    /// <returns>The new <see cref="Size" />.</returns>
     public RelativeSize WithHeight(RelativeLength height) { return new RelativeSize(Width, height); }
 
     /// <summary>
-    /// Returns the string representation of the size.
+    ///     Returns the string representation of the size.
     /// </summary>
     /// <returns>The string representation of the size.</returns>
-    public override string ToString() {
-        return string.Format(CultureInfo.InvariantCulture, "{0}, {1}", Width, Height);
-    }
+    public override string ToString() { return string.Format(CultureInfo.InvariantCulture, "{0}, {1}", Width, Height); }
 
     /// <summary>
-    /// Deconstructs the size into its Width and Height values.
+    ///     Deconstructs the size into its Width and Height values.
     /// </summary>
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>

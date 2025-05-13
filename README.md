@@ -1,15 +1,21 @@
 ﻿# RelativeControl.Avalonia
 
-## What is this?
+This provides some relative features for [Avalonia](https://github.com/AvaloniaUI/Avalonia).
 
-This is a `Control` providing relative units for [Avalonia](https://github.com/AvaloniaUI/Avalonia).
+## Get Started
+Add nuget package:
 
-## How to use this?
+```bash
+dotnet add package RelativeControl.Avalonia
+```
+
+Use `Relative`(or `Rel` as an abbreviation) in controls.
 
 ```xaml
-<Window xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:re="https://github.com/metaone01/RelativeControl.Avalonia">
-	<Button re:Relative.Width="0.5vw"/>
+<Window 
+    ...
+    xmlns:rel="https://github.com/metaone01/RelativeControl.Avalonia"
+    ...>
+	<Button rel:Rel.Width="0.5vw"/>
 </Window>
 ```

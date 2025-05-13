@@ -1,6 +1,4 @@
-﻿using NUnit.Framework;
-
-namespace Test.RelativeControl;
+﻿namespace Test.RelativeControl;
 
 public class Tests {
     [SetUp] public void Setup() { }
