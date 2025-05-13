@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <Version>0.0.1-alpha</Version>
+        <Version>0.0.2</Version>
         <Title>RelativeControl.Avalonia</Title>
         <Authors>metaone01</Authors>
         <Description>Enable relative units for Avalonia controls</Description>
@@ -21,12 +21,11 @@
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Avalonia" Version="11.3.0"/>
-        <PackageReference Include="Avalonia.Desktop" Version="11.3.0"/>
-        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0"/>
-        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.0"/>
+        <PackageReference Include="Avalonia" Version="11.1.1"/>
+        <PackageReference Include="Avalonia.Desktop" Version="11.1.1"/>
+        <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.1"/>
+        <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.1"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
         <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.0"/>
-        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
     </ItemGroup>
 </Project>
