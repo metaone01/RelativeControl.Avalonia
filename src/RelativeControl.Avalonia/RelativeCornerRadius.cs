@@ -8,12 +8,15 @@ namespace RelativeControl.Avalonia;
 ///     Represents the radii of a rectangle's corners.
 /// </summary>
 public readonly struct RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
-    public RelativeCornerRadius(RelativeLength uniformRadius) {
+    public RelativeCornerRadius(RelativeLength uniformRadius, Visual? target = null) {
+        uniformRadius.SetTarget(target);
         TopLeft = TopRight = BottomLeft = BottomRight = uniformRadius;
     }
-    
 
-    public RelativeCornerRadius(RelativeLength top, RelativeLength bottom) {
+
+    public RelativeCornerRadius(RelativeLength top, RelativeLength bottom, Visual? target = null) {
+        top.SetTarget(target);
+        bottom.SetTarget(target);
         TopLeft    = TopRight    = top;
         BottomLeft = BottomRight = bottom;
     }
@@ -22,7 +25,12 @@ public readonly struct RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
         RelativeLength topLeft,
         RelativeLength topRight,
         RelativeLength bottomRight,
-        RelativeLength bottomLeft) {
+        RelativeLength bottomLeft,
+        Visual? target = null) {
+        topLeft.SetTarget(target);
+        topRight.SetTarget(target);
+        bottomRight.SetTarget(target);
+        bottomLeft.SetTarget(target);
         TopLeft     = topLeft;
         TopRight    = topRight;
         BottomRight = bottomRight;
@@ -63,12 +71,11 @@ public readonly struct RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
     }
 
 
-    public RelativeCornerRadius WithTarget(Visual? target) {
+    public void SetTarget(Visual? target) {
         TopLeft.SetTarget(target);
         TopRight.SetTarget(target);
         BottomRight.SetTarget(target);
         BottomLeft.SetTarget(target);
-        return this;
     }
 
     /// <summary>
@@ -96,21 +103,19 @@ public readonly struct RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
         return FormattableString.Invariant($"{TopLeft},{TopRight},{BottomRight},{BottomLeft}");
     }
 
-    public static RelativeCornerRadius Parse(string s) {
-        const string exceptionMessage = "Invalid RelativeCornerRadius.";
-
-        using SpanStringTokenizer tokenizer = new(s, CultureInfo.InvariantCulture, exceptionMessage);
-        if (tokenizer.TryReadDouble(out double a)) {
-            if (tokenizer.TryReadDouble(out double b)) {
-                if (tokenizer.TryReadDouble(out double c))
-                    return new RelativeCornerRadius(a, b, c, tokenizer.ReadDouble());
-                return new RelativeCornerRadius(a, b);
-            }
-
-            return new RelativeCornerRadius(a);
-        }
-
-        throw new FormatException(exceptionMessage);
+    public static RelativeCornerRadius Parse(string s,Visual? target = null) {
+        string[] vals = s.Trim().Split(' ');
+        return vals.Length switch {
+            1 => new RelativeCornerRadius(new RelativeLength(vals[0], target)),
+            2 => new RelativeCornerRadius(new RelativeLength(vals[0], target), new RelativeLength(vals[1], target)),
+            4 => new RelativeCornerRadius(
+                new RelativeLength(vals[0], target),
+                new RelativeLength(vals[1], target),
+                new RelativeLength(vals[2], target),
+                new RelativeLength(vals[3], target)),
+            _ => throw new FormatException(
+                string.Format(CultureInfo.InvariantCulture, "Invalid relative corner radius: '{0}'", s))
+        };
     }
 
     public static bool operator ==(RelativeCornerRadius left, RelativeCornerRadius right) { return left.Equals(right); }

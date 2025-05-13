@@ -30,14 +30,21 @@ public readonly struct RelativeThickness : IEquatable<RelativeThickness> {
     ///     Initializes a new instance of the <see cref="RelativeThickness" /> structure.
     /// </summary>
     /// <param name="uniformLength">The length that should be applied to all sides.</param>
-    public RelativeThickness(RelativeLength uniformLength) { Left = Top = Right = Bottom = uniformLength; }
+    /// <param name="target">The relative target.</param>
+    public RelativeThickness(RelativeLength uniformLength,Visual? target = null) {
+        uniformLength.SetTarget(target);
+        Left = Top = Right = Bottom = uniformLength;
+    }
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="RelativeThickness" /> structure.
     /// </summary>
     /// <param name="horizontal">The thickness on the left and right.</param>
     /// <param name="vertical">The thickness on the top and bottom.</param>
-    public RelativeThickness(RelativeLength horizontal, RelativeLength vertical) {
+    /// <param name="target">The relative target.</param>
+    public RelativeThickness(RelativeLength horizontal, RelativeLength vertical, Visual? target = null) {
+        horizontal.SetTarget(target);
+        vertical.SetTarget(target);
         Left = Right  = horizontal;
         Top  = Bottom = vertical;
     }
@@ -49,7 +56,17 @@ public readonly struct RelativeThickness : IEquatable<RelativeThickness> {
     /// <param name="top">The relative thickness on the top.</param>
     /// <param name="right">The relative thickness on the right.</param>
     /// <param name="bottom">The relative thickness on the bottom.</param>
-    public RelativeThickness(RelativeLength left, RelativeLength top, RelativeLength right, RelativeLength bottom) {
+    /// <param name="target">The relative target.</param>
+    public RelativeThickness(
+        RelativeLength left,
+        RelativeLength top,
+        RelativeLength right,
+        RelativeLength bottom,
+        Visual? target = null) {
+        left.SetTarget(target);
+        top.SetTarget(target);
+        right.SetTarget(target);
+        bottom.SetTarget(target);
         Left   = left;
         Top    = top;
         Right  = right;
@@ -66,12 +83,11 @@ public readonly struct RelativeThickness : IEquatable<RelativeThickness> {
     }
 
 
-    public RelativeThickness WithTarget(Visual? target) {
+    public void SetTarget(Visual? target) {
         Left.SetTarget(target);
         Top.SetTarget(target);
         Right.SetTarget(target);
         Bottom.SetTarget(target);
-        return this;
     }
 
     /// <summary>
@@ -148,22 +164,21 @@ public readonly struct RelativeThickness : IEquatable<RelativeThickness> {
     ///     Parses a <see cref="RelativeThickness" /> string.
     /// </summary>
     /// <param name="s">The string.</param>
+    /// <param name="target">The relative target.</param>
     /// <returns>The <see cref="RelativeThickness" />.</returns>
-    public static RelativeThickness Parse(string s) {
-        const string exceptionMessage = "Invalid relative thickness.";
-
-        using SpanStringTokenizer tokenizer = new(s, CultureInfo.InvariantCulture, exceptionMessage);
-        if (tokenizer.TryReadDouble(out double a)) {
-            if (tokenizer.TryReadDouble(out double b)) {
-                if (tokenizer.TryReadDouble(out double c))
-                    return new RelativeThickness(a, b, c, tokenizer.ReadDouble());
-                return new RelativeThickness(a, b);
-            }
-
-            return new RelativeThickness(a);
-        }
-
-        throw new FormatException(exceptionMessage);
+    public static RelativeThickness Parse(string s, Visual? target = null) {
+        string[] vals = s.Trim().Split(' ');
+        return vals.Length switch {
+            1 => new RelativeThickness(new RelativeLength(vals[0], target)),
+            2 => new RelativeThickness(new RelativeLength(vals[0], target), new RelativeLength(vals[1], target)),
+            4 => new RelativeThickness(
+                new RelativeLength(vals[0], target),
+                new RelativeLength(vals[1], target),
+                new RelativeLength(vals[2], target),
+                new RelativeLength(vals[3], target)),
+            _ => throw new FormatException(
+                string.Format(CultureInfo.InvariantCulture, "Invalid relative thickness: '{0}'", s))
+        };
     }
 
     /// <summary>
@@ -217,7 +232,6 @@ public readonly struct RelativeThickness : IEquatable<RelativeThickness> {
         right  = Right;
         bottom = Bottom;
     }
-
 
     public static implicit operator RelativeThickness(Thickness thickness) {
         return new RelativeThickness(thickness.Left, thickness.Top, thickness.Right, thickness.Bottom);
