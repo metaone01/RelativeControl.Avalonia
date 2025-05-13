@@ -1,0 +1,26 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RelativeControl.Avalonia", "src\RelativeControl.Avalonia\RelativeControl.Avalonia.csproj", "{FEA7395D-C139-4586-8822-457457163A16}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{9A5B88AA-507E-41F6-B04B-D70955C1D756}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.RelativeControl", "test\Test.RelativeControl.csproj", "{66C1D622-D3BA-486B-AAE9-5ABB3750C0DB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEA7395D-C139-4586-8822-457457163A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEA7395D-C139-4586-8822-457457163A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEA7395D-C139-4586-8822-457457163A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEA7395D-C139-4586-8822-457457163A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66C1D622-D3BA-486B-AAE9-5ABB3750C0DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66C1D622-D3BA-486B-AAE9-5ABB3750C0DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66C1D622-D3BA-486B-AAE9-5ABB3750C0DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66C1D622-D3BA-486B-AAE9-5ABB3750C0DB}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{66C1D622-D3BA-486B-AAE9-5ABB3750C0DB} = {9A5B88AA-507E-41F6-B04B-D70955C1D756}
+	EndGlobalSection
+EndGlobal
