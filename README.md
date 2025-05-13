@@ -14,8 +14,8 @@ Use `Relative`(or `Rel` as an abbreviation) in controls.
 ```xaml
 <Window 
     ...
-    xmlns:rel="https://github.com/metaone01/RelativeControl.Avalonia"
+    xmlns:r="https://github.com/metaone01/RelativeControl.Avalonia"
     ...>
-	<Button rel:Rel.Width="0.5vw"/>
+	<Button r:Rel.Width="0.5vw"/>
 </Window>
 ```
