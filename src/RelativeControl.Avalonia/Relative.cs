@@ -5,64 +5,98 @@ using Avalonia.Layout;
 namespace RelativeControl.Avalonia;
 
 public class Relative : AvaloniaObject {
-    public static readonly AttachedProperty<RelativeLength?> WidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(WidthProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeLength> WidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("Width");
 
-    public static readonly AttachedProperty<RelativeLength?> HeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(HeightProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeLength> HeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("Height", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength?> MinWidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(MinWidthProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeLength> MinWidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MinWidth", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength?> MinHeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(MinHeightProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeLength> MinHeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MinHeight", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength?> MaxWidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(MaxWidthProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeLength> MaxWidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MaxWidth", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength?> MaxHeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength?>(nameof(MaxHeightProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeLength> MaxHeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MaxHeight", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeThickness?> BorderThicknessProperty =
-        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeThickness?>(
-            nameof(BorderThicknessProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeThickness> BorderThicknessProperty =
+        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeThickness>(
+            "BorderThickness",
+            RelativeThickness.Empty);
 
-    public static readonly AttachedProperty<RelativeLength?> CornerRadiusProperty =
-        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeLength?>(
-            nameof(CornerRadiusProperty)[..^8]);
+    public static readonly AttachedProperty<RelativeCornerRadius> CornerRadiusProperty =
+        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeCornerRadius>(
+            "CornerRadius",
+            RelativeCornerRadius.Empty);
 
     static Relative() {
         WidthProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            RelativeLength? nl = args.NewValue as RelativeLength;
-            layoutable.Width = nl?.Absolute() ?? double.NaN;
+            if (args.NewValue is RelativeLength nl) {
+                layoutable.Width           =  nl.Absolute();
+                nl.OnRelativeLengthChanged += (_, newActualPixel) => layoutable.Width = newActualPixel;
+            } else {
+                layoutable.Width = double.NaN;
+            }
         });
         HeightProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            RelativeLength? nl = args.NewValue as RelativeLength;
-            layoutable.Height = nl?.Absolute() ?? double.NaN;
+            if (args.NewValue is RelativeLength nl) {
+                layoutable.Height          =  nl.Absolute();
+                nl.OnRelativeLengthChanged += (_, newActualPixel) => layoutable.Height = newActualPixel;
+            } else {
+                layoutable.Height = double.NaN;
+            }
         });
         MinWidthProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            RelativeLength? nl = args.NewValue as RelativeLength;
-            layoutable.MinWidth = nl?.Absolute() ?? double.NaN;
+            if (args.NewValue is RelativeLength nl) {
+                layoutable.MinWidth        =  nl.Absolute();
+                nl.OnRelativeLengthChanged += (_, newActualPixel) => layoutable.MinWidth = newActualPixel;
+            } else {
+                layoutable.MinWidth = double.NegativeInfinity;
+            }
         });
         MinHeightProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            RelativeLength? nl = args.NewValue as RelativeLength;
-            layoutable.MinHeight = nl?.Absolute() ?? double.NaN;
+            if (args.NewValue is RelativeLength nl) {
+                layoutable.MinHeight       =  nl.Absolute();
+                nl.OnRelativeLengthChanged += (_, newActualPixel) => layoutable.MinHeight = newActualPixel;
+            } else {
+                layoutable.MinHeight = double.NegativeInfinity;
+            }
         });
         MaxWidthProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            RelativeLength? nl = args.NewValue as RelativeLength;
-            layoutable.MaxWidth = nl?.Absolute() ?? double.NaN;
+            if (args.NewValue is RelativeLength nl) {
+                layoutable.MaxWidth        =  nl.Absolute();
+                nl.OnRelativeLengthChanged += (_, newActualPixel) => layoutable.MaxWidth = newActualPixel;
+            } else {
+                layoutable.MaxWidth = double.PositiveInfinity;
+            }
         });
         MaxHeightProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            RelativeLength? nl = args.NewValue as RelativeLength;
-            layoutable.MaxHeight = nl?.Absolute() ?? double.NaN;
+            if (args.NewValue is RelativeLength nl) {
+                layoutable.MaxHeight       =  nl.Absolute();
+                nl.OnRelativeLengthChanged += (_, newActualPixel) => layoutable.MaxHeight = newActualPixel;
+            } else {
+                layoutable.MaxHeight = double.PositiveInfinity;
+            }
         });
         BorderThicknessProperty.Changed.AddClassHandler<TemplatedControl>((templatedControl, args) => {
-            var nt = args.NewValue as RelativeThickness?;
-            templatedControl.BorderThickness = nt?.Absolute() ?? default;
+            if (args.NewValue is RelativeThickness nt) {
+                templatedControl.BorderThickness =  nt.Absolute();
+                nt.OnRelativeThicknessChanged    += thickness => templatedControl.BorderThickness = thickness;
+            } else {
+                templatedControl.BorderThickness = default;
+            }
         });
         CornerRadiusProperty.Changed.AddClassHandler<TemplatedControl>((templatedControl, args) => {
-            var ncr = args.NewValue as RelativeCornerRadius?;
-            templatedControl.CornerRadius = ncr?.Absolute() ?? default;
+            if (args.NewValue is RelativeCornerRadius ncr) {
+                templatedControl.CornerRadius     =  ncr.Absolute();
+                ncr.OnRelativeCornerRadiusChanged += cornerRadius => templatedControl.CornerRadius = cornerRadius;
+            } else {
+                templatedControl.CornerRadius = default;
+            }
         });
     }
 

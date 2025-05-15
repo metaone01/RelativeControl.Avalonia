@@ -29,11 +29,11 @@ public enum Units : ushort {
     ViewPortHeight         // vh
 }
 
-public enum AbsoluteUnits {
+public enum AbsoluteUnits : ushort {
     Pixel = Units.Pixel, Centimeter = Units.Centimeter, Millimeter = Units.Millimeter, Inch = Units.Inch
 }
 
-public enum RelativeUnits {
+public enum RelativeUnits : ushort {
     TemplatedParentWidth = Units.TemplatedParentWidth,
     TemplatedParentHeight = Units.TemplatedParentHeight,
     LogicalParentWidth = Units.LogicalParentWidth,
@@ -93,9 +93,9 @@ public static class Converters {
 }
 
 public static class Extensions {
-    public static bool IsAbsolute(this Units unit) { return Enum.IsDefined(typeof(AbsoluteUnits), unit); }
+    public static bool IsAbsolute(this Units unit) { return Enum.IsDefined(typeof(AbsoluteUnits), (ushort)unit); }
 
-    public static bool IsRelative(this Units unit) { return Enum.IsDefined(typeof(RelativeUnits), unit); }
+    public static bool IsRelative(this Units unit) { return Enum.IsDefined(typeof(RelativeUnits), (ushort)unit); }
 
     public static bool Equals(this Units unit, AbsoluteUnits absoluteUnit) {
         return (ushort)unit == (ushort)absoluteUnit;
@@ -218,13 +218,20 @@ public sealed class RelativeLengthMerge : IRelativeLength, IEquatable<RelativeLe
     }
 }
 
-public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
+public class RelativeLength : IRelativeLength {
     public delegate void RelativeLengthChanged(double oldActualPixels, double newActualPixels);
 
+    public static readonly RelativeLength Empty = new(double.NaN);
     public readonly Units Unit;
-    private Visual? _source;
+    private double _actualPixels = double.NaN;
+    private Visual? _target;
 
-    public RelativeLength(string length, Visual? control = null) {
+    /// <summary>
+    ///     Base class for relative values.
+    /// </summary>
+    /// <param name="length">A string representing relative length.</param>
+    /// <param name="target">The target control.</param>
+    public RelativeLength(string length, Visual? target = null) {
         length = length.Trim();
         if (char.IsNumber(length[^1])) {
             Value = Convert.ToDouble(length);
@@ -238,39 +245,57 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
 
         Value   = Convert.ToDouble(length[..(i + 1)]);
         Unit    = Converters.StringToUnit(length[(i + 1)..]);
-        _source = GetSource(control);
-        if (Unit.IsRelative())
-            _source!.PropertyChanged += Update;
+        _target = target;
+        // ReSharper disable once InvertIf
+        if (Unit.IsRelative() && GetSource(target) is { } source) {
+            source.PropertyChanged += Update;
+            Update();
+        }
     }
 
-    public RelativeLength(double value, Units unit = Units.Pixel, Visual? control = null) {
+    /// <summary>
+    ///     Base class for relative values.
+    /// </summary>
+    /// <param name="value">Relative value.</param>
+    /// <param name="unit">Relative unit.</param>
+    /// <param name="target">The target control.</param>
+    public RelativeLength(double value, Units unit = Units.Pixel, Visual? target = null) {
         Value   = value;
         Unit    = unit;
-        _source = GetSource(control);
-        if (Unit.IsRelative())
-            _source!.PropertyChanged += Update;
+        _target = target;
+        // ReSharper disable once InvertIf
+        if (Unit.IsRelative() && GetSource(target) is { } source) {
+            source.PropertyChanged += Update;
+            Update();
+        }
     }
 
-    public RelativeLength(double value, string unit, Visual? control = null) {
+    /// <summary>
+    ///     Base class for relative values.
+    /// </summary>
+    /// <param name="value">The relative value.</param>
+    /// <param name="unit">The relative unit.</param>
+    /// <param name="target">The target control.</param>
+    public RelativeLength(double value, string unit, Visual? target = null) {
         Value   = value;
         Unit    = Converters.StringToUnit(unit);
-        _source = GetSource(control);
-        if (Unit.IsRelative())
-            _source!.PropertyChanged += Update;
+        _target = target;
+        // ReSharper disable once InvertIf
+        if (Unit.IsRelative() && GetSource(_target) is { } source) {
+            source.PropertyChanged += Update;
+            Update();
+        }
     }
 
     public double Value { get; private set; }
-
-    public bool Equals(RelativeLength? other) {
-        return other is not null && Math.Abs(Value - other.Value) < 0.001 && Unit == other.Unit;
-    }
-
-    public double ActualPixels { get; private set; }
-
-    public double Absolute() { return ActualPixels; }
-
+    public double ActualPixels => Absolute();
     public event RelativeLengthChanged? OnRelativeLengthChanged;
 
+    public double Absolute() {
+        if (double.IsNaN(_actualPixels) && !double.IsNaN(Value))
+            Update();
+        return _actualPixels;
+    }
 
     private Visual? GetSource(Visual? visual) {
         return Unit switch {
@@ -289,102 +314,123 @@ public class RelativeLength : IRelativeLength, IEquatable<RelativeLength> {
         };
     }
 
-    public void SetTarget(Visual? target = null) { _source = GetSource(target); }
-
-    public void SetSource(Visual? source = null) { _source = source; }
+    /// <summary>
+    ///     Set another target for this relative length.
+    /// </summary>
+    /// <param name="target">The new target.</param>
+    public void SetTarget(Visual? target = null) {
+        if (GetSource(_target) is { } oldSource)
+            oldSource.PropertyChanged -= Update;
+        _target = target;
+        if (Unit.IsRelative() && GetSource(_target) is { } newSource)
+            newSource.PropertyChanged += Update;
+        Update();
+    }
 
     public void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? e = null) {
-        double oldActualPixels = ActualPixels;
-        ActualPixels = Unit switch {
-            Units.Pixel                 => Value,
-            Units.Centimeter            => 96 / 2.54 * Value,
-            Units.Millimeter            => 96 / 2.54 * Value / 1000,
-            Units.Inch                  => 96 * Value,
-            Units.TemplatedParentWidth  => _source?.Bounds.Width * Value ?? -1,
-            Units.TemplatedParentHeight => _source?.Bounds.Height * Value ?? -1,
-            Units.LogicalParentWidth    => _source?.Bounds.Width * Value ?? -1,
-            Units.LogicalParentHeight   => _source?.Bounds.Height * Value ?? -1,
-            Units.VisualParentWidth     => _source?.Bounds.Width * Value ?? -1,
-            Units.VisualParentHeight    => _source?.Bounds.Height * Value ?? -1,
-            Units.SelfWidth             => _source?.Bounds.Width * Value ?? -1,
-            Units.SelfHeight            => _source?.Bounds.Height * Value ?? -1,
-            Units.FontSize              => _source?.Styles.GetValue(TextElement.FontSizeProperty) * Value ?? -1,
-            Units.ViewPortWidth         => (_source as TopLevel)?.ClientSize.Width * Value ?? -1,
-            Units.ViewPortHeight        => (_source as TopLevel)?.ClientSize.Height * Value ?? -1,
-            _                           => throw new ArgumentOutOfRangeException($"{Unit} is not implemented by now.")
-        };
-        OnRelativeLengthChanged?.Invoke(oldActualPixels, ActualPixels);
+        double oldActualPixels = _actualPixels;
+        if (GetSource(_target) is { } source)
+            _actualPixels = Unit switch {
+                Units.Pixel => Value,
+                Units.Centimeter => 96 / 2.54 * Value,
+                Units.Millimeter => 96 / 2.54 * Value / 1000,
+                Units.Inch => 96 * Value,
+                Units.TemplatedParentWidth => source.Bounds.Width * Value,
+                Units.TemplatedParentHeight => source.Bounds.Height * Value,
+                Units.LogicalParentWidth => source.Bounds.Width * Value,
+                Units.LogicalParentHeight => source.Bounds.Height * Value,
+                Units.VisualParentWidth => source.Bounds.Width * Value,
+                Units.VisualParentHeight => source.Bounds.Height * Value,
+                Units.SelfWidth => source.Bounds.Width * Value,
+                Units.SelfHeight => source.Bounds.Height * Value,
+                Units.FontSize => source.Styles.GetValue(TextElement.FontSizeProperty) * Value,
+                Units.ViewPortWidth => (source as TopLevel)!.ClientSize.Width * Value,
+                Units.ViewPortHeight => (source as TopLevel)!.ClientSize.Height * Value,
+                _ => throw new ArgumentOutOfRangeException($"{Unit} is not implemented by now.")
+            };
+        OnRelativeLengthChanged?.Invoke(oldActualPixels, _actualPixels);
     }
 
     public static RelativeLengthMerge Merge(RelativeLength left, RelativeLength right) {
         if (left.Unit.Equals(right.Unit))
-            return left._source == right._source ?
-                new RelativeLengthMerge(new RelativeLength(left.Value + right.Value, left.Unit, left._source)) :
+            return left._target == right._target ?
+                new RelativeLengthMerge(new RelativeLength(left.Value + right.Value, left.Unit, left._target)) :
                 new RelativeLengthMerge(left, right);
 
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
-            return new RelativeLengthMerge(new RelativeLength(left.ActualPixels + right.ActualPixels));
+            return new RelativeLengthMerge(new RelativeLength(left._actualPixels + right._actualPixels));
         return new RelativeLengthMerge(left, right);
     }
 
-    public static RelativeLength Min(RelativeLength left, RelativeLength right) { return left < right ? left : right; }
+    public static RelativeLength Min(RelativeLength left, RelativeLength right) {
+        if (left._actualPixels is double.NaN)
+            return right;
+        if (right._actualPixels is double.NaN)
+            return left;
+        return left._actualPixels < right._actualPixels ? left : right;
+    }
 
-    public static RelativeLength Max(RelativeLength left, RelativeLength right) { return left > right ? left : right; }
+    public static RelativeLength Max(RelativeLength left, RelativeLength right) {
+        if (left._actualPixels is double.NaN)
+            return right;
+        if (right._actualPixels is double.NaN)
+            return left;
+        return left._actualPixels > right._actualPixels ? left : right;
+    }
 
-    public override bool Equals(object? obj) { return obj is RelativeLength other && Equals(other); }
+    public bool Equals(RelativeLength? other) {
+        return other is not null && Math.Abs(Value - other.Value) < 0.001 && Unit == other.Unit;
+    }
 
-    public override int GetHashCode() { return HashCode.Combine(this); }
+    public override string ToString() { return $"{Value}{Converters.UnitToString(Unit)}"; }
 
-    public static bool operator ==(RelativeLength a, RelativeLength b) { return a.Equals(b); }
-    public static bool operator !=(RelativeLength a, RelativeLength b) { return !a.Equals(b); }
-    public static bool operator <(RelativeLength a, RelativeLength b) { return a.ActualPixels < b.ActualPixels; }
-
-    public static bool operator >(RelativeLength a, RelativeLength b) { return a.ActualPixels > b.ActualPixels; }
+    ~RelativeLength() {
+        if (GetSource(_target) is { } source)
+            source.PropertyChanged -= Update;
+    }
 
     public static RelativeLength operator +(RelativeLength left, RelativeLength right) {
         if (left.Unit.Equals(right.Unit)) {
-            if (left._source == right._source)
-                return new RelativeLength(left.Value + right.Value, left.Unit, left._source);
+            if (left._target == right._target)
+                return new RelativeLength(left.Value + right.Value, left.Unit, left._target);
             throw new InvalidOperationException("Cannot add two relative lengths with different targets.");
         }
 
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
-            return new RelativeLength(left.ActualPixels + right.ActualPixels);
+            return new RelativeLength(left._actualPixels + right._actualPixels);
 
         throw new InvalidOperationException("Cannot add relative lengths with different relative Units");
     }
 
     public static RelativeLength operator -(RelativeLength left, RelativeLength right) {
         if (left.Unit.Equals(right.Unit)) {
-            if (left._source == right._source)
-                return new RelativeLength(left.Value - right.Value, left.Unit, left._source);
-            throw new InvalidOperationException("Cannot add two relative lengths with different targets.");
+            if (left._target == right._target)
+                return new RelativeLength(left.Value - right.Value, left.Unit, left._target);
+            throw new InvalidOperationException("Cannot subtract two relative lengths with different targets.");
         }
 
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
-            return new RelativeLength(left.ActualPixels - right.ActualPixels);
+            return new RelativeLength(left._actualPixels - right._actualPixels);
 
         throw new InvalidOperationException("Cannot subtract relative lengths with different targets.");
     }
 
-    public static RelativeLength operator *(RelativeLength relativeLength, double multiply) {
-        relativeLength.Value *= multiply;
+    public static RelativeLength operator *(RelativeLength relativeLength, double scaler) {
+        relativeLength.Value *= scaler;
         return relativeLength;
     }
 
-    public static RelativeLength operator *(double multiply, RelativeLength relativeLength) {
-        relativeLength.Value *= multiply;
+    public static RelativeLength operator *(double scaler, RelativeLength relativeLength) {
+        relativeLength.Value *= scaler;
         return relativeLength;
     }
 
-    public static RelativeLength operator /(RelativeLength relativeLength, double divider) {
-        relativeLength.Value /= divider;
+    public static RelativeLength operator /(RelativeLength relativeLength, double scaler) {
+        relativeLength.Value /= scaler;
         return relativeLength;
     }
 
     public static implicit operator RelativeLength(double value) { return new RelativeLength(value); }
 
-    public override string ToString() { return $"{Value}{Converters.UnitToString(Unit)}"; }
-
-    ~RelativeLength() { _source!.PropertyChanged -= Update; }
+    public static implicit operator string(RelativeLength value) { return value.ToString(); }
 }
