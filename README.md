@@ -17,7 +17,7 @@ Use `Relative` in controls.
     ...
     xmlns:r="https://github.com/metaone01/RelativeControl.Avalonia"
     ...>
-	<Button r:Relative.Width="0.5vw"/>
+	<Button r:Relative.Width="50vw"/>
 </Window>
 ```
 ## Units
