@@ -31,17 +31,15 @@ public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
     /// </summary>
     public readonly RelativeLength TopRight;
 
-    public RelativeCornerRadius(RelativeLength uniformRadius, Visual? target = null) {
+    public RelativeCornerRadius(RelativeLength uniformRadius) {
         TopLeft = TopRight = BottomLeft = BottomRight = uniformRadius;
-        SetTarget(target);
         Register();
     }
 
 
-    public RelativeCornerRadius(RelativeLength top, RelativeLength bottom, Visual? target = null) {
+    public RelativeCornerRadius(RelativeLength top, RelativeLength bottom) {
         TopLeft    = TopRight    = top;
         BottomLeft = BottomRight = bottom;
-        SetTarget(target);
         Register();
     }
 
@@ -49,13 +47,11 @@ public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
         RelativeLength topLeft,
         RelativeLength topRight,
         RelativeLength bottomRight,
-        RelativeLength bottomLeft,
-        Visual? target = null) {
+        RelativeLength bottomLeft) {
         TopLeft     = topLeft;
         TopRight    = topRight;
         BottomRight = bottomRight;
         BottomLeft  = bottomLeft;
-        SetTarget(target);
         Register();
     }
 
@@ -80,7 +76,11 @@ public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
     public event RelativeCornerRadiusChanged? OnRelativeCornerRadiusChanged;
 
     public CornerRadius Absolute() {
-        return new CornerRadius(TopLeft.Absolute(), TopRight.Absolute(), BottomRight.Absolute(), BottomLeft.Absolute());
+        double topLeft = double.IsNaN(TopLeft.ActualPixels) ? 0 : TopLeft.ActualPixels;
+        double topRight = double.IsNaN(TopRight.ActualPixels) ? 0 : TopRight.ActualPixels;
+        double bottomRight = double.IsNaN(BottomRight.ActualPixels) ? 0 : BottomRight.ActualPixels;
+        double bottomLeft = double.IsNaN(BottomLeft.ActualPixels) ? 0 : BottomLeft.ActualPixels;
+        return new CornerRadius(topLeft, topRight, bottomRight, bottomLeft);
     }
 
     /// <summary>

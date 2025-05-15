@@ -246,11 +246,7 @@ public class RelativeLength : IRelativeLength {
         Value   = Convert.ToDouble(length[..(i + 1)]);
         Unit    = Converters.StringToUnit(length[(i + 1)..]);
         _target = target;
-        // ReSharper disable once InvertIf
-        if (Unit.IsRelative() && GetSource(target) is { } source) {
-            source.PropertyChanged += Update;
-            Update();
-        }
+        Initialize();
     }
 
     /// <summary>
@@ -263,11 +259,7 @@ public class RelativeLength : IRelativeLength {
         Value   = value;
         Unit    = unit;
         _target = target;
-        // ReSharper disable once InvertIf
-        if (Unit.IsRelative() && GetSource(target) is { } source) {
-            source.PropertyChanged += Update;
-            Update();
-        }
+        Initialize();
     }
 
     /// <summary>
@@ -280,11 +272,7 @@ public class RelativeLength : IRelativeLength {
         Value   = value;
         Unit    = Converters.StringToUnit(unit);
         _target = target;
-        // ReSharper disable once InvertIf
-        if (Unit.IsRelative() && GetSource(_target) is { } source) {
-            source.PropertyChanged += Update;
-            Update();
-        }
+        Initialize();
     }
 
     public double Value { get; private set; }
@@ -318,36 +306,56 @@ public class RelativeLength : IRelativeLength {
     ///     Set another target for this relative length.
     /// </summary>
     /// <param name="target">The new target.</param>
-    public void SetTarget(Visual? target = null) {
+    public void SetTarget(Visual? target) {
         if (GetSource(_target) is { } oldSource)
             oldSource.PropertyChanged -= Update;
         _target = target;
         if (Unit.IsRelative() && GetSource(_target) is { } newSource)
             newSource.PropertyChanged += Update;
+        Initialize();
+    }
+
+    private void Initialize() {
+        if (_target is null)
+            return;
+        if (!_target.IsAttachedToVisualTree()) {
+            _target.AttachedToVisualTree += UpdateOnAttachedToVisualTree;
+        } else {
+            if (Unit.IsRelative() && GetSource(_target) is { } source)
+                source.PropertyChanged += Update;
+            Update();
+        }
+    }
+
+    private void UpdateOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs e) {
+        if (Unit.IsRelative() && GetSource(_target) is { } source)
+            source.PropertyChanged += Update;
         Update();
+        _target!.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
     }
 
     public void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? e = null) {
+        if (GetSource(_target) is not { } source)
+            return;
         double oldActualPixels = _actualPixels;
-        if (GetSource(_target) is { } source)
-            _actualPixels = Unit switch {
-                Units.Pixel => Value,
-                Units.Centimeter => 96 / 2.54 * Value,
-                Units.Millimeter => 96 / 2.54 * Value / 1000,
-                Units.Inch => 96 * Value,
-                Units.TemplatedParentWidth => source.Bounds.Width * Value,
-                Units.TemplatedParentHeight => source.Bounds.Height * Value,
-                Units.LogicalParentWidth => source.Bounds.Width * Value,
-                Units.LogicalParentHeight => source.Bounds.Height * Value,
-                Units.VisualParentWidth => source.Bounds.Width * Value,
-                Units.VisualParentHeight => source.Bounds.Height * Value,
-                Units.SelfWidth => source.Bounds.Width * Value,
-                Units.SelfHeight => source.Bounds.Height * Value,
-                Units.FontSize => source.Styles.GetValue(TextElement.FontSizeProperty) * Value,
-                Units.ViewPortWidth => (source as TopLevel)!.ClientSize.Width * Value,
-                Units.ViewPortHeight => (source as TopLevel)!.ClientSize.Height * Value,
-                _ => throw new ArgumentOutOfRangeException($"{Unit} is not implemented by now.")
-            };
+        _actualPixels = Unit switch {
+            Units.Pixel                 => Value,
+            Units.Centimeter            => 96 / 2.54 * Value,
+            Units.Millimeter            => 96 / 2.54 * Value / 1000,
+            Units.Inch                  => 96 * Value,
+            Units.TemplatedParentWidth  => source.Bounds.Width * Value,
+            Units.TemplatedParentHeight => source.Bounds.Height * Value,
+            Units.LogicalParentWidth    => source.Bounds.Width * Value,
+            Units.LogicalParentHeight   => source.Bounds.Height * Value,
+            Units.VisualParentWidth     => source.Bounds.Width * Value,
+            Units.VisualParentHeight    => source.Bounds.Height * Value,
+            Units.SelfWidth             => source.Bounds.Width * Value,
+            Units.SelfHeight            => source.Bounds.Height * Value,
+            Units.FontSize              => source.Styles.GetValue(TextElement.FontSizeProperty) * Value,
+            Units.ViewPortWidth         => (source as TopLevel)!.ClientSize.Width * Value,
+            Units.ViewPortHeight        => (source as TopLevel)!.ClientSize.Height * Value,
+            _                           => throw new ArgumentOutOfRangeException($"{Unit} is not implemented by now.")
+        };
         OnRelativeLengthChanged?.Invoke(oldActualPixels, _actualPixels);
     }
 

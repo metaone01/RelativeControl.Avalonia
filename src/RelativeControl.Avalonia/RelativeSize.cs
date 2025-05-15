@@ -35,10 +35,9 @@ public class RelativeSize : IEquatable<RelativeSize> {
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
     /// <param name="target">The target control.</param>
-    public RelativeSize(RelativeLength width, RelativeLength height, Visual? target = null) {
+    public RelativeSize(RelativeLength width, RelativeLength height) {
         Width  = width;
         Height = height;
-        SetTarget(target);
         Register();
     }
 
@@ -69,11 +68,15 @@ public class RelativeSize : IEquatable<RelativeSize> {
 
 
     private void Register() {
-        Width.OnRelativeLengthChanged  += (_, _) => { OnRelativeSizeChanged?.Invoke(Absolute()); };
-        Height.OnRelativeLengthChanged += (_, _) => { OnRelativeSizeChanged?.Invoke(Absolute()); };
+        Width.OnRelativeLengthChanged  += (_, _) => OnRelativeSizeChanged?.Invoke(Absolute());
+        Height.OnRelativeLengthChanged += (_, _) => OnRelativeSizeChanged?.Invoke(Absolute());
     }
 
-    public Size Absolute() { return new Size(Width.ActualPixels, Height.ActualPixels); }
+    public Size Absolute() {
+        double width  = double.IsNaN(Width.ActualPixels) ? 0 : Width.ActualPixels;
+        double height = double.IsNaN(Height.ActualPixels) ? 0 : Height.ActualPixels;
+        return new Size(width, height);
+    }
 
     /// <summary>
     ///     Returns the string representation of the size.

@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <Version>0.0.5</Version>
+        <Version>0.1.0</Version>
         <Title>RelativeControl.Avalonia</Title>
         <Authors>metaone01</Authors>
         <Description>Enable relative units for Avalonia controls</Description>
@@ -13,6 +13,7 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <IncludeSymbols>true</IncludeSymbols>
         <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
     <ItemGroup>
         <None Include="../../README.md" Pack="true" PackagePath=""/>

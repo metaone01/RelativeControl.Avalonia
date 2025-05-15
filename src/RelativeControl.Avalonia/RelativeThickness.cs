@@ -33,9 +33,8 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     /// </summary>
     /// <param name="uniformLength">The length that should be applied to all sides.</param>
     /// <param name="target">The relative target.</param>
-    public RelativeThickness(RelativeLength uniformLength, Visual? target = null) {
+    public RelativeThickness(RelativeLength uniformLength) {
         Left = Top = Right = Bottom = uniformLength;
-        SetTarget(target);
         Register();
     }
 
@@ -45,10 +44,9 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     /// <param name="horizontal">The thickness on the left and right.</param>
     /// <param name="vertical">The thickness on the top and bottom.</param>
     /// <param name="target">The relative target.</param>
-    public RelativeThickness(RelativeLength horizontal, RelativeLength vertical, Visual? target = null) {
+    public RelativeThickness(RelativeLength horizontal, RelativeLength vertical) {
         Left = Right  = horizontal;
         Top  = Bottom = vertical;
-        SetTarget(target);
         Register();
     }
 
@@ -60,17 +58,11 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     /// <param name="right">The relative thickness on the right.</param>
     /// <param name="bottom">The relative thickness on the bottom.</param>
     /// <param name="target">The relative target.</param>
-    public RelativeThickness(
-        RelativeLength left,
-        RelativeLength top,
-        RelativeLength right,
-        RelativeLength bottom,
-        Visual? target = null) {
+    public RelativeThickness(RelativeLength left, RelativeLength top, RelativeLength right, RelativeLength bottom) {
         Left   = left;
         Top    = top;
         Right  = right;
         Bottom = bottom;
-        SetTarget(target);
         Register();
     }
 
@@ -87,6 +79,7 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     public bool Equals(RelativeThickness? other) {
         return Left == other?.Left && Top == other.Top && Right == other.Right && Bottom == other.Bottom;
     }
+
 
     public event RelativeThicknessChanged? OnRelativeThicknessChanged;
 
@@ -109,7 +102,11 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     }
 
     public Thickness Absolute() {
-        return new Thickness(Left.ActualPixels, Top.ActualPixels, Right.ActualPixels, Bottom.ActualPixels);
+        double left = double.IsNaN(Left.ActualPixels) ? 0 : Left.ActualPixels;
+        double top = double.IsNaN(Top.ActualPixels) ? 0 : Top.ActualPixels;
+        double right = double.IsNaN(Right.ActualPixels) ? 0 : Right.ActualPixels;
+        double bottom = double.IsNaN(Bottom.ActualPixels) ? 0 : Bottom.ActualPixels;
+        return new Thickness(left,top,right,bottom);
     }
 
 
