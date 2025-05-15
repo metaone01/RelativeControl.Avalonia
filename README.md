@@ -20,6 +20,29 @@ Use `Relative` in controls.
 	<Button r:Relative.Width="0.5vw"/>
 </Window>
 ```
+## Units
+
+Absolute Units:
+
+    px: Pixel
+    cm: Centimeter
+    mm: Millimeter
+    in: Inch
+
+Relative Units:
+
+    tpw: TemplatedParent's width
+    tph: TemplatedParent's height
+    lpw or pw: Parent's width
+    lph or ph: Parent's height
+    vpw: VisualParent's width
+    vph: VisualParent's height
+    sw: The control itself's width
+    sh: The control itself's height
+    em: The control's FontSize
+    vw: Window's width
+    vh: Window's height
+    
 
 ## Supported Properties
 
