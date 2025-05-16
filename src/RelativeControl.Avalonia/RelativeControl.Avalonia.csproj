@@ -2,7 +2,7 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <Version>0.2.0</Version>
+        <Version>0.2.1</Version>
         <Title>RelativeControl.Avalonia</Title>
         <Authors>metaone01</Authors>
         <Description>Enable relative units for Avalonia controls</Description>
