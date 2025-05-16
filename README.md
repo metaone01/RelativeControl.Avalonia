@@ -20,6 +20,7 @@ Use `Relative` in controls.
 	<Button r:Relative.Width="50vw"/>
 </Window>
 ```
+
 ## Units
 
 Absolute Units:
@@ -31,22 +32,21 @@ Absolute Units:
 
 Relative Units:
 
-    tpw: TemplatedParent's width
-    tph: TemplatedParent's height
-    lpw or pw: Parent's width
-    lph or ph: Parent's height
-    vpw: VisualParent's width
-    vph: VisualParent's height
-    sw: The control itself's width
-    sh: The control itself's height
-    em: The control's FontSize
-    vw: Window's width
-    vh: Window's height
-    
+          tpw: TemplatedParent's width
+          tph: TemplatedParent's height
+    lpw or pw: LogicalParent's width
+    lph or ph: LogicalParent's height
+          vpw: VisualParent's width
+          vph: VisualParent's height
+           sw: The control itself's width
+           sh: The control itself's height
+           em: The control's FontSize
+           vw: Window's width
+           vh: Window's height
 
 ## Supported Properties
 
-0.0.5
+\>=0.0.5
 
 - Width
 - Height
@@ -57,8 +57,10 @@ Relative Units:
 - BorderThickness
 - CornerRadius
 
-0.1.0
+\>=0.1.0
 
 - Margin
 - Padding
-    
+
+## Breaking Changes
+
