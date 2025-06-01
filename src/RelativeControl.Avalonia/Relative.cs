@@ -1,28 +1,31 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml;
 
 namespace RelativeControl.Avalonia;
 
 public class Relative : AvaloniaObject {
-    public static readonly AttachedProperty<RelativeLength> WidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("Width");
+    public static readonly AttachedProperty<RelativeLengthBase> WidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLengthBase>("Width");
 
-    public static readonly AttachedProperty<RelativeLength> HeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("Height", RelativeLength.Empty);
+    public static readonly AttachedProperty<RelativeLengthBase> HeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLengthBase>("Height", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MinWidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MinWidth", RelativeLength.Empty);
+    public static readonly AttachedProperty<RelativeLengthBase> MinWidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLengthBase>("MinWidth", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MinHeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MinHeight", RelativeLength.Empty);
+    public static readonly AttachedProperty<RelativeLengthBase> MinHeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLengthBase>("MinHeight", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MaxWidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MaxWidth", RelativeLength.Empty);
+    public static readonly AttachedProperty<RelativeLengthBase> MaxWidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLengthBase>("MaxWidth", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MaxHeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MaxHeight", RelativeLength.Empty);
+    public static readonly AttachedProperty<RelativeLengthBase> MaxHeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLengthBase>("MaxHeight", RelativeLength.Empty);
 
     public static readonly AttachedProperty<RelativeThickness> BorderThicknessProperty =
         AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeThickness>(
@@ -93,7 +96,7 @@ public class Relative : AvaloniaObject {
         CornerRadiusProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
             if (args.NewValue is RelativeCornerRadius ncr) {
                 layoutable.SetValue(Border.CornerRadiusProperty, ncr.Absolute());
-                ncr.OnRelativeCornerRadiusChanged += cornerRadius =>
+                ncr.RelativeCornerRadiusChanged += cornerRadius =>
                     layoutable.SetValue(Border.CornerRadiusProperty, cornerRadius);
             } else {
                 layoutable.SetValue(Border.CornerRadiusProperty, default);
@@ -106,9 +109,9 @@ public class Relative : AvaloniaObject {
         AvaloniaPropertyChangedEventArgs args,
         AvaloniaProperty property,
         double defaultValue = double.NaN) where T : AvaloniaObject {
-        if (args.NewValue is RelativeLength nl) {
+        if (args.NewValue is RelativeLengthBase nl) {
             element.SetValue(property, nl.Absolute());
-            nl.OnRelativeLengthChanged += (_, newActualPixel) => element.SetValue(property, newActualPixel);
+            nl.RelativeLengthChanged += (_, newActualPixel) => element.SetValue(property, newActualPixel);
         } else {
             element.SetValue(property, defaultValue);
         }
@@ -120,47 +123,47 @@ public class Relative : AvaloniaObject {
         AvaloniaProperty property) where T : AvaloniaObject {
         if (args.NewValue is RelativeThickness nt) {
             element.SetValue(property, nt.Absolute());
-            nt.OnRelativeThicknessChanged += thickness => element.SetValue(property, thickness);
+            nt.RelativeThicknessChanged += thickness => element.SetValue(property, thickness);
         } else {
             element.SetValue(property, RelativeThickness.Empty);
         }
     }
 
     public static void SetWidth(Visual visual, string s) {
-        visual.SetValue(WidthProperty, new RelativeLength(s, visual));
+        visual.SetValue(WidthProperty, RelativeLength.Parse(s, visual));
     }
 
-    public static RelativeLength GetWidth(Visual visual) { return visual.GetValue(WidthProperty); }
+    public static RelativeLengthBase GetWidth(Visual visual) { return visual.GetValue(WidthProperty); }
 
     public static void SetHeight(Visual visual, string s) {
-        visual.SetValue(HeightProperty, new RelativeLength(s, visual));
+        visual.SetValue(HeightProperty, RelativeLength.Parse(s, visual));
     }
 
-    public static RelativeLength GetHeight(Visual visual) { return visual.GetValue(HeightProperty); }
+    public static RelativeLengthBase GetHeight(Visual visual) { return visual.GetValue(HeightProperty); }
 
     public static void SetMinWidth(Visual visual, string s) {
-        visual.SetValue(MinWidthProperty, new RelativeLength(s, visual));
+        visual.SetValue(MinWidthProperty, RelativeLength.Parse(s, visual));
     }
 
-    public static RelativeLength GetMinWidth(Visual visual) { return visual.GetValue(MinWidthProperty); }
+    public static RelativeLengthBase GetMinWidth(Visual visual) { return visual.GetValue(MinWidthProperty); }
 
     public static void SetMinHeight(Visual visual, string s) {
-        visual.SetValue(MinHeightProperty, new RelativeLength(s, visual));
+        visual.SetValue(MinHeightProperty, RelativeLength.Parse(s, visual));
     }
 
-    public static RelativeLength GetMinHeight(Visual visual) { return visual.GetValue(MinHeightProperty); }
+    public static RelativeLengthBase GetMinHeight(Visual visual) { return visual.GetValue(MinHeightProperty); }
 
     public static void SetMaxWidth(Visual visual, string s) {
-        visual.SetValue(MaxWidthProperty, new RelativeLength(s, visual));
+        visual.SetValue(MaxWidthProperty, RelativeLength.Parse(s, visual));
     }
 
-    public static RelativeLength GetMaxWidth(Visual visual) { return visual.GetValue(MaxWidthProperty); }
+    public static RelativeLengthBase GetMaxWidth(Visual visual) { return visual.GetValue(MaxWidthProperty); }
 
     public static void SetMaxHeight(Visual visual, string s) {
-        visual.SetValue(MaxHeightProperty, new RelativeLength(s, visual));
+        visual.SetValue(MaxHeightProperty, RelativeLength.Parse(s, visual));
     }
 
-    public static RelativeLength GetMaxHeight(Visual visual) { return visual.GetValue(MaxHeightProperty); }
+    public static RelativeLengthBase GetMaxHeight(Visual visual) { return visual.GetValue(MaxHeightProperty); }
 
     public static void SetBorderThickness(Visual visual, string s) {
         visual.SetValue(BorderThicknessProperty, RelativeThickness.Parse(s, visual));
@@ -188,4 +191,14 @@ public class Relative : AvaloniaObject {
     }
 
     public static RelativeThickness GetPadding(Visual visual) { return visual.GetValue(PaddingProperty); }
+}
+
+public class RelativeBinding(BindingBase sourceProperty,string value) : MarkupExtension {
+    public readonly RelativeScaler Scaler = RelativeScaler.Parse(value);
+
+    public override object ProvideValue(IServiceProvider serviceProvider) {
+        sourceProperty.Converter = new RelativeConverter();
+        sourceProperty.ConverterParameter = Scaler;
+        return sourceProperty;
+    }
 }
