@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Headless.XUnit;
 using Avalonia.VisualTree;
@@ -78,6 +77,7 @@ public class RelativeUnitTest {
         Relative.SetWidth(border, "20sh");
         Assert.Equal(0.2 * border.Height, border.Width);
     }
+
     [AvaloniaFact]
     public void Test_Relative_Unit_SelfHeight() {
         Border border = new() { Width = 1440 };
@@ -86,20 +86,22 @@ public class RelativeUnitTest {
         Relative.SetHeight(border, "20sw");
         Assert.Equal(0.2 * border.Width, border.Height);
     }
+
     [AvaloniaFact]
     public void Test_Relative_Unit_FontSize() {
-        TextBlock textBlock = new() { FontSize=14 };
+        TextBlock textBlock = new() { FontSize = 14 };
         Window window = new() { Content = textBlock };
         window.Show();
         Relative.SetHeight(textBlock, "2em");
         Assert.Equal(2 * textBlock.FontSize, textBlock.Height);
     }
+
     [AvaloniaFact]
     public void Test_Relative_Unit_ViewPortHeight() {
         Border border = new();
-        Window window = new() { Height=900,Content = border };
+        Window window = new() { Height = 900, Content = border };
         window.Show();
         Relative.SetHeight(border, "20vh");
-        Assert.Equal(0.2* window.Height, border.Height);
+        Assert.Equal(0.2 * window.Height, border.Height);
     }
 }

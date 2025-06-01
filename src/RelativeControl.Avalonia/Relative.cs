@@ -193,7 +193,7 @@ public class Relative : AvaloniaObject {
     public static RelativeThickness GetPadding(Visual visual) { return visual.GetValue(PaddingProperty); }
 }
 
-public class RelativeBinding(BindingBase sourceProperty,string value) : MarkupExtension {
+public class RelativeBinding(BindingBase sourceProperty, string value) : MarkupExtension {
     public readonly RelativeScaler Scaler = RelativeScaler.Parse(value);
 
     public override object ProvideValue(IServiceProvider serviceProvider) {
