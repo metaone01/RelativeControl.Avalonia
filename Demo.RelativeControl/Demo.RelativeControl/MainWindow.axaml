@@ -1,0 +1,71 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:r="https://github.com/metaone01/RelativeControl.Avalonia"
+        x:Class="Demo.RelativeControl.MainWindow"
+        Title="Demo.RelativeControl">
+    <Window.Styles>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Background" Value="#80A9A9A9" />
+        </Style>
+        <Style Selector="ListBoxItem > TextBlock">
+            <Setter Property="Background" Value="Wheat" />
+            <Setter Property="Foreground" Value="Magenta" />
+        </Style>
+    </Window.Styles>
+    <Grid RowDefinitions="Auto,4,*" ColumnDefinitions="Auto,4,*">
+        <Border Grid.Row="0" Grid.Column="0">
+            <ScrollViewer Name="Container"
+                          r:Relative.Width="50pw"
+                          r:Relative.Height="50ph">
+                <!-- r:Relative.Width="50pw"  // This sets its width to 50% parent width.
+                 r:Relative.Height="50ph" // This sets its height to 50% parent height. -->
+                <ListBox>
+                    <ListBoxItem>
+                        <TextBlock Name="First"
+                                   Text="{Binding #Right.Bounds.Width}"
+                                   r:Relative.Width="70pw" />
+                        <!-- r:Relative.Width="70pw" // This sets its width to 70% parent width. -->
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <TextBlock Name="Second"
+                                   Text="{r:RelativeBinding {Binding #First.Text},50%}"
+                                   r:Relative.Width="30vw"
+                                   r:Relative.Height="5ph" />
+                        <!-- Text="{r:RelativeBinding {Binding #Block.Text},50%}" // This sets its content to 50% of #Block.Text(the Text property's value of TextBlock named 'Block' above)
+                     r:Relative.Width="30vw" // This sets its width to 30% window width-->
+                    </ListBoxItem>
+                    <ListBoxItem>
+                        <WrapPanel>
+                            <Button Click="Button_OnClick" Content="Increase" />
+                            <Button Click="Button_OnClick2" Content="Decrease" />
+                        </WrapPanel>
+                    </ListBoxItem>
+                </ListBox>
+            </ScrollViewer>
+        </Border>
+        <GridSplitter Grid.Row="1" Grid.Column="0" Background="Red" />
+        <GridSplitter Grid.Row="0" Grid.Column="1" Background="Blue" />
+        <Border Grid.Row="1" Grid.Column="1">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="100% 0%" EndPoint="0% 100%">
+                    <GradientStops>
+                        <GradientStop Color="Blue" Offset="0" />
+                        <GradientStop Color="Blue" Offset="0.5" />
+                        <GradientStop Color="Red" Offset="0.5" />
+                        <GradientStop Color="Red" Offset="1" />
+                    </GradientStops>
+                </LinearGradientBrush>
+            </Border.Background>
+        </Border>
+        <Border Name="Right" MinWidth="20" MinHeight="20" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2"
+                Background="Orchid" />
+        <Border Name="Bottom" MinWidth="20" MinHeight="20" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                Background="Plum" />
+        <Border Name="RightBottom" MinWidth="20" MinHeight="20" Grid.Row="2" Grid.Column="2" Background="HotPink">
+            <TextBlock>
+
+            </TextBlock>
+        </Border>
+
+    </Grid>
+</Window>

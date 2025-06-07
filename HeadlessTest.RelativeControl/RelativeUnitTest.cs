@@ -17,7 +17,7 @@ public class RelativeUnitTest {
         wait.WaitOne();
         Control child = container.GetTemplateChildren().First();
         Relative.SetWidth(child, "20tpw");
-        Assert.Equal(0.2 * container.Width, child.Width);
+        Assert.StrictEqual(0.2 * container.Width, child.Width);
     }
 
     [AvaloniaFact]
@@ -30,7 +30,7 @@ public class RelativeUnitTest {
         wait.WaitOne();
         Control child = container.GetTemplateChildren().First();
         Relative.SetHeight(child, "20tph");
-        Assert.Equal(0.2 * container.Height, child.Height);
+        Assert.StrictEqual(0.2 * container.Height, child.Height);
     }
 
     [AvaloniaFact]
@@ -39,7 +39,7 @@ public class RelativeUnitTest {
         Window window = new() { Width = 1440, Height = 900, Content = border };
         window.Show();
         Relative.SetWidth(border, "20pw");
-        Assert.Equal(0.2 * window.Width, border.Width);
+        Assert.StrictEqual(0.2 * window.Width, border.Width);
     }
 
     [AvaloniaFact]
@@ -48,7 +48,7 @@ public class RelativeUnitTest {
         Window window = new() { Width = 1440, Height = 900, Content = border };
         window.Show();
         Relative.SetHeight(border, "20ph");
-        Assert.Equal(0.2 * window.Height, border.Height);
+        Assert.StrictEqual(0.2 * window.Height, border.Height);
     }
 
     [AvaloniaFact]
@@ -57,7 +57,7 @@ public class RelativeUnitTest {
         Window window = new() { Width = 1440, Height = 900, Content = border };
         window.Show();
         Relative.SetWidth(border, "20vpw");
-        Assert.Equal(0.2 * border.GetVisualParent()!.Bounds.Width, border.Width);
+        Assert.StrictEqual(0.2 * border.GetVisualParent()!.Bounds.Width, border.Width);
     }
 
     [AvaloniaFact]
@@ -66,7 +66,7 @@ public class RelativeUnitTest {
         Window window = new() { Width = 1440, Height = 900, Content = border };
         window.Show();
         Relative.SetHeight(border, "20vph");
-        Assert.Equal(0.2 * border.GetVisualParent()!.Bounds.Height, border.Height);
+        Assert.StrictEqual(0.2 * border.GetVisualParent()!.Bounds.Height, border.Height);
     }
 
     [AvaloniaFact]
@@ -75,7 +75,7 @@ public class RelativeUnitTest {
         Window window = new() { Content = border };
         window.Show();
         Relative.SetWidth(border, "20sh");
-        Assert.Equal(0.2 * border.Height, border.Width);
+        Assert.StrictEqual(0.2 * border.Height, border.Width);
     }
 
     [AvaloniaFact]
@@ -84,7 +84,7 @@ public class RelativeUnitTest {
         Window window = new() { Content = border };
         window.Show();
         Relative.SetHeight(border, "20sw");
-        Assert.Equal(0.2 * border.Width, border.Height);
+        Assert.StrictEqual(0.2 * border.Width, border.Height);
     }
 
     [AvaloniaFact]
@@ -93,7 +93,15 @@ public class RelativeUnitTest {
         Window window = new() { Content = textBlock };
         window.Show();
         Relative.SetHeight(textBlock, "2em");
-        Assert.Equal(2 * textBlock.FontSize, textBlock.Height);
+        Assert.StrictEqual(2 * textBlock.FontSize, textBlock.Height);
+    }
+    [AvaloniaFact]
+    public void Test_Relative_Unit_ViewPortWidth() {
+        Border border = new();
+        Window window = new() { Width = 1440, Content = border };
+        window.Show();
+        Relative.SetWidth(border, "20vw");
+        Assert.StrictEqual(0.2 * window.Width, border.Width);
     }
 
     [AvaloniaFact]
@@ -102,6 +110,6 @@ public class RelativeUnitTest {
         Window window = new() { Height = 900, Content = border };
         window.Show();
         Relative.SetHeight(border, "20vh");
-        Assert.Equal(0.2 * window.Height, border.Height);
+        Assert.StrictEqual(0.2 * window.Height, border.Height);
     }
 }

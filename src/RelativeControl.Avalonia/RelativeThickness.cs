@@ -3,9 +3,9 @@ using Avalonia;
 
 namespace RelativeControl.Avalonia;
 
-public class RelativeThickness : IEquatable<RelativeThickness> {
-    public delegate void RelativeThicknessChangedHandler(Thickness newThickness);
+// public class RelativeThickness
 
+public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickness> {
     public static readonly RelativeThickness Empty = new(RelativeLength.Empty);
 
     /// <summary>
@@ -27,6 +27,11 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     ///     The relative thickness on the top.
     /// </summary>
     public readonly RelativeLengthBase Top;
+
+    public Thickness ActualThickness =>
+        new(Left.ActualPixels, Right.ActualPixels, Top.ActualPixels, Bottom.ActualPixels);
+
+    public Thickness ActualValue => ActualThickness;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="RelativeThickness" /> structure.
@@ -73,6 +78,55 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     public bool IsUniform => Left == Right && Top == Bottom && Left == Top;
 
     /// <summary>
+    ///     Adds two RelativeThicknesses.
+    /// </summary>
+    /// <param name="a">The first relative thickness.</param>
+    /// <param name="b">The second relative thickness.</param>
+    /// <returns>The equality.</returns>
+    public static RelativeThickness operator +(RelativeThickness a, RelativeThickness b) {
+        return new RelativeThickness(a.Left + b.Left, a.Top + b.Top, a.Right + b.Right, a.Bottom + b.Bottom);
+    }
+
+    /// <summary>
+    ///     Subtracts two RelativeThicknesses.
+    /// </summary>
+    /// <param name="a">The first relative thickness.</param>
+    /// <param name="b">The second relative thickness.</param>
+    /// <returns>The equality.</returns>
+    public static RelativeThickness operator -(RelativeThickness a, RelativeThickness b) {
+        return new RelativeThickness(a.Left - b.Left, a.Top - b.Top, a.Right - b.Right, a.Bottom - b.Bottom);
+    }
+
+    /// <summary>
+    ///     Multiplies a RelativeThickness to a scalar.
+    /// </summary>
+    /// <param name="left">The relative thickness.</param>
+    /// <param name="scaler">The scalar.</param>
+    /// <returns>The equality.</returns>
+    public static RelativeThickness operator *(RelativeThickness left, double scaler) {
+        return new RelativeThickness(left.Left * scaler, left.Top * scaler, left.Right * scaler, left.Bottom * scaler);
+    }
+
+    /// <summary>
+    ///     Multiplies a RelativeThickness to a scalar.
+    /// </summary>
+    /// <param name="scaler">The scalar.</param>
+    /// <param name="right">The relative thickness.</param>
+    /// <returns>The equality.</returns>
+    public static RelativeThickness operator *(double scaler, RelativeThickness right) { return right * scaler; }
+
+
+    /// <summary>
+    ///     Divides a RelativeThickness by a scalar.
+    /// </summary>
+    /// <param name="left">The relative thickness.</param>
+    /// <param name="scaler">The scalar.</param>
+    /// <returns>The equality.</returns>
+    public static RelativeThickness operator /(RelativeThickness left, double scaler) {
+        return new RelativeThickness(left.Left / scaler, left.Top / scaler, left.Right / scaler, left.Bottom / scaler);
+    }
+
+    /// <summary>
     ///     Returns a boolean indicating whether the relative thickness is equal to the other given point.
     /// </summary>
     /// <param name="other">The other relative thickness to test equality against.</param>
@@ -82,17 +136,49 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     }
 
 
-    public event RelativeThicknessChangedHandler? RelativeThicknessChanged;
+    public event RelativeChangedEventHandler<Thickness>? RelativeChanged;
 
     private void Register() {
-        Left.RelativeLengthChanged += (_, _) => { RelativeThicknessChanged?.Invoke(Absolute()); };
-        Top.RelativeLengthChanged += (_, _) => { RelativeThicknessChanged?.Invoke(Absolute()); };
-        Right.RelativeLengthChanged += (_, _) => { RelativeThicknessChanged?.Invoke(Absolute()); };
-        Bottom.RelativeLengthChanged += (_, _) => { RelativeThicknessChanged?.Invoke(Absolute()); };
+        Left.RelativeChanged += UpdateLeft;
+        Top.RelativeChanged += UpdateTop;
+        Right.RelativeChanged += UpdateRight;
+        Bottom.RelativeChanged += UpdateBottom;
+    }
+
+    private void UpdateLeft(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<Thickness>(
+                new Thickness(args.OldValue, Top.ActualPixels, Right.ActualPixels, Bottom.ActualPixels),
+                ActualThickness));
+    }
+
+    private void UpdateTop(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<Thickness>(
+                new Thickness(Left.ActualPixels, args.OldValue, Right.ActualPixels, Bottom.ActualPixels),
+                ActualThickness));
+    }
+
+    private void UpdateRight(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<Thickness>(
+                new Thickness(Left.ActualPixels, Top.ActualPixels, args.OldValue, Bottom.ActualPixels),
+                ActualThickness));
+    }
+
+    private void UpdateBottom(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<Thickness>(
+                new Thickness(Left.ActualPixels, Top.ActualPixels, Right.ActualPixels, args.OldValue),
+                ActualThickness));
     }
 
     public Thickness Absolute() {
-        return new Thickness(Left.ActualPixels, Top.ActualPixels, Right.ActualPixels, Bottom.ActualPixels);
+        return new Thickness(Left.Absolute(), Top.Absolute(), Right.Absolute(), Bottom.Absolute());
     }
 
 
@@ -105,13 +191,15 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     public static RelativeThickness Parse(string s, Visual? target = null) {
         string[] vals = s.Trim().Split(' ');
         return vals.Length switch {
-            1 => new RelativeThickness(RelativeLength.Parse(vals[0], target)),
-            2 => new RelativeThickness(RelativeLength.Parse(vals[0], target), RelativeLength.Parse(vals[1], target)),
+            1 => new RelativeThickness(RelativeLengthBase.Parse(vals[0], target)),
+            2 => new RelativeThickness(
+                RelativeLengthBase.Parse(vals[0], target),
+                RelativeLengthBase.Parse(vals[1], target)),
             4 => new RelativeThickness(
-                RelativeLength.Parse(vals[0], target),
-                RelativeLength.Parse(vals[1], target),
-                RelativeLength.Parse(vals[2], target),
-                RelativeLength.Parse(vals[3], target)),
+                RelativeLengthBase.Parse(vals[0], target),
+                RelativeLengthBase.Parse(vals[1], target),
+                RelativeLengthBase.Parse(vals[2], target),
+                RelativeLengthBase.Parse(vals[3], target)),
             _ => throw new FormatException($"Invalid relative thickness: '{s}'")
         };
     }
@@ -172,35 +260,39 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
     public static bool operator !=(RelativeThickness a, RelativeThickness b) { return !a.Equals(b); }
 
     /// <summary>
-    ///     Adds two RelativeThicknesses.
-    /// </summary>
-    /// <param name="a">The first relative thickness.</param>
-    /// <param name="b">The second relative thickness.</param>
-    /// <returns>The equality.</returns>
-    public static RelativeThickness operator +(RelativeThickness a, RelativeThickness b) {
-        return new RelativeThickness(a.Left + b.Left, a.Top + b.Top, a.Right + b.Right, a.Bottom + b.Bottom);
-    }
-
-    /// <summary>
     ///     Adds a RelativeThickness to a RelativeSize.
     /// </summary>
     /// <param name="size">The size.</param>
     /// <param name="thickness">The thickness.</param>
     /// <returns>The equality.</returns>
-    public static RelativeSize operator +(Size size, RelativeThickness thickness) {
+    public static RelativeSize operator +(RelativeSize size, RelativeThickness thickness) {
         return new RelativeSize(
             size.Width + thickness.Left + thickness.Right,
             size.Height + thickness.Top + thickness.Bottom);
     }
 
     /// <summary>
-    ///     Subtracts two RelativeThicknesses.
+    ///     Adds a RelativeThickness to a Size.
     /// </summary>
-    /// <param name="a">The first relative thickness.</param>
-    /// <param name="b">The second relative thickness.</param>
+    /// <param name="size">The size.</param>
+    /// <param name="thickness">The thickness.</param>
     /// <returns>The equality.</returns>
-    public static RelativeThickness operator -(RelativeThickness a, RelativeThickness b) {
-        return new RelativeThickness(a.Left - b.Left, a.Top - b.Top, a.Right - b.Right, a.Bottom - b.Bottom);
+    public static RelativeSize operator +(Size size, RelativeThickness thickness) {
+        return new RelativeSize(
+            (RelativeLength)size.Width + thickness.Left + thickness.Right,
+            (RelativeLength)size.Height + thickness.Top + thickness.Bottom);
+    }
+
+    /// <summary>
+    ///     Subtracts a RelativeThickness from a Size.
+    /// </summary>
+    /// <param name="size">The size.</param>
+    /// <param name="thickness">The thickness.</param>
+    /// <returns>The equality.</returns>
+    public static RelativeSize operator -(Size size, RelativeThickness thickness) {
+        return new RelativeSize(
+            (RelativeLength)size.Width - (thickness.Left + thickness.Right),
+            (RelativeLength)size.Height - (thickness.Top + thickness.Bottom));
     }
 
     /// <summary>
@@ -215,28 +307,7 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
             size.Height - (thickness.Top + thickness.Bottom));
     }
 
-    /// <summary>
-    ///     Multiplies a RelativeThickness to a scalar.
-    /// </summary>
-    /// <param name="left">The relative thickness.</param>
-    /// <param name="scaler">The scalar.</param>
-    /// <returns>The equality.</returns>
-    public static RelativeThickness operator *(RelativeThickness left, double scaler) {
-        return new RelativeThickness(left.Left * scaler, left.Top * scaler, left.Right * scaler, left.Bottom * scaler);
-    }
-
-
-    /// <summary>
-    ///     Divides a RelativeThickness by a scalar.
-    /// </summary>
-    /// <param name="left">The relative thickness.</param>
-    /// <param name="scaler">The scalar.</param>
-    /// <returns>The equality.</returns>
-    public static RelativeThickness operator /(RelativeThickness left, double scaler) {
-        return new RelativeThickness(left.Left / scaler, left.Top / scaler, left.Right / scaler, left.Bottom / scaler);
-    }
-
-    public static implicit operator RelativeThickness(Thickness thickness) {
+    public static explicit operator RelativeThickness(Thickness thickness) {
         return new RelativeThickness(
             (RelativeLength)thickness.Left,
             (RelativeLength)thickness.Top,
@@ -244,7 +315,12 @@ public class RelativeThickness : IEquatable<RelativeThickness> {
             (RelativeLength)thickness.Bottom);
     }
 
-    public static explicit operator Thickness(RelativeThickness relative) { return relative.Absolute(); }
+    public static explicit operator Thickness(RelativeThickness relative) { return relative.ActualThickness; }
 
-    public static implicit operator string(RelativeThickness value) { return value.ToString(); }
+    ~RelativeThickness() {
+        Left.RelativeChanged -= UpdateLeft;
+        Top.RelativeChanged -= UpdateTop;
+        Right.RelativeChanged -= UpdateRight;
+        Bottom.RelativeChanged -= UpdateBottom;
+    }
 }

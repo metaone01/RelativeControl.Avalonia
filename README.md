@@ -20,6 +20,8 @@ dotnet add package RelativeControl.Avalonia
 	<Button r:Relative.Width="50vw"/>
 </Window>
 ```
+> Relative values need a instance (its target) to initialize, so it cannot be set in a `Setter`.
+
 
 #### Bind Custom Properties:
 
@@ -29,6 +31,14 @@ dotnet add package RelativeControl.Avalonia
 <Button YourCustomProperty="{r:RelativeBinding {Binding RELATIVE_PROPERTY},50%}">
 </Button>
 ```
+
+> If you want to bind from a `Width` or `Height`, please use `Bounds.Width` or `Bounds.Height` instead.
+>
+> That ensures the binding can get the source control's actual width or height.
+
+
+[See usages in demo](./Demo.RelativeControl/Demo.RelativeControl/README.md)
+
 
 ## Units
 
@@ -87,7 +97,7 @@ Relative units are using percentages (Excepts `em`). To make it more like *css*.
 + <Button r:Relative.Width="50vw"/>
 ```
 
-### 1.0.0:
+### 1.0.0-alpha:
 
 *Move all relative length from **Units.cs** to **RelativeLength.cs***
 
@@ -144,7 +154,16 @@ Relative units are using percentages (Excepts `em`). To make it more like *css*.
 - SetTarget
 ```
  
+#### 1.0.0-beta:
 
+```diff
+- public event RelativeXXXChanged(T oldValue,T newValue);
++ public event RelativeChanged<T>(IRelative<T> sender,RelativeChangedEventArgs<T> args);
++ public class RelativeChangedEventArgs<T>(T oldValue, T newValue) : RelativeChangedEventArgs {
++     public readonly T OldValue = oldValue;
++     public readonly T NewValue = newValue;
++ }
+```
 
 
 
