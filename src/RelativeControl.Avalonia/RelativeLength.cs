@@ -103,7 +103,7 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
         };
     }
 
-    public static IEnumerable<RelativeLength> ParseSingle(string s, Visual? visual = null) {
+    private static IEnumerable<RelativeLength> ParseSingle(string s, Visual? visual = null) {
         s = s.Trim();
         if (s.Length == 0)
             yield break;
@@ -120,7 +120,7 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
             begin = i + 1;
         }
 
-        yield return RelativeLength.Parse(s[begin..s.Length], visual);
+        yield return RelativeLength.Parse(s[begin..], visual);
     }
 
     public static RelativeLengthBase operator +(RelativeLengthBase left, RelativeLengthBase right) {
@@ -311,6 +311,20 @@ public abstract class RelativeLengthCollection : RelativeLengthBase,
         double old = ActualPixels;
         Scale /= other.Scale;
         InvokeIfChanged(old, ActualPixels);
+    }
+
+    public override string ToString() {
+        string result = "";
+        foreach (RelativeLengthBase length in Children) {
+            if (length is SingleRelativeLength single) {
+                if (single.Value >= 0)
+                    result += '+';
+                result += single.ToString();
+            } else
+                result += $"({length})";
+        }
+
+        return result[0] == '+' ? result[1..] : result;
     }
 }
 
@@ -523,7 +537,7 @@ public sealed class RelativeLength : SingleRelativeLength {
             target.AttachedToVisualTree += UpdateOnAttachedToVisualTree;
         } else {
             SetSource();
-            if (Unit.IsRelative() && GetSource() is {} source)
+            if (Unit.IsRelative() && GetSource() is { } source)
                 source.PropertyChanged += Update;
         }
 
@@ -532,7 +546,7 @@ public sealed class RelativeLength : SingleRelativeLength {
 
     private void UpdateOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs args) {
         SetSource();
-        if (Unit.IsRelative() && GetSource() is {} source)
+        if (Unit.IsRelative() && GetSource() is { } source)
             source.PropertyChanged += Update;
         Update();
         GetTarget()!.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
@@ -555,7 +569,9 @@ public sealed class RelativeLength : SingleRelativeLength {
             Units.FontSize              => source.GetValue(TextElement.FontSizeProperty) * Value, // not percent
             Units.ViewPortWidth         => (source as TopLevel)!.ClientSize.Width * Value / 100d,
             Units.ViewPortHeight        => (source as TopLevel)!.ClientSize.Height * Value / 100d,
-            _                           => throw new ArgumentOutOfRangeException($"{Unit} is not implemented by now.")
+#pragma warning disable CA2208
+            _ => throw new ArgumentOutOfRangeException(nameof(Unit))
+#pragma warning restore CA2208
         };
         InvokeIfChanged(oldActualPixels, _actualPixels);
         return;
@@ -716,5 +732,134 @@ public sealed class RelativeConverter : IValueConverter {
             string s                          => System.Convert.ToDouble(s) / para.Scale,
             _                                 => (value as double?) / para.Scale
         };
+    }
+}
+
+public readonly struct CalcRelative(double value, Units unit = Units.Pixel, Visual? target = null) {
+    public readonly double Value = value;
+    public readonly Units Unit = unit;
+    public readonly Visual? Target = target;
+
+    public CalcRelative(double value, string unit, Visual? target = null) : this(
+        value,
+        Converters.StringToUnit(unit),
+        target) { }
+
+
+    public double Calc() {
+        if (Unit.IsAbsolute()) {
+            // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+            return Unit switch {
+                Units.Pixel      => Value,
+                Units.Centimeter => 96 / 2.54 * Value,
+                Units.Millimeter => 96 / 2.54 * Value / 1000,
+                Units.Inch       => 96 * Value,
+                _                => throw new ArgumentOutOfRangeException(nameof(unit))
+            };
+        }
+
+        // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+        double? result = Unit switch {
+            Units.TemplatedParentWidth  => GetWidth(Target?.TemplatedParent as Visual) * Value / 100d,
+            Units.TemplatedParentHeight => GetHeight(Target?.TemplatedParent as Visual) * Value / 100d,
+            Units.LogicalParentWidth    => GetWidth(Target?.Parent as Visual) * Value / 100d,
+            Units.LogicalParentHeight   => GetHeight(Target?.Parent as Visual) * Value / 100d,
+            Units.VisualParentWidth     => GetWidth(Target?.GetVisualParent()) * Value / 100d,
+            Units.VisualParentHeight    => GetHeight(Target?.GetVisualParent()) * Value / 100d,
+            Units.SelfWidth             => GetWidth(Target) * Value / 100d,
+            Units.SelfHeight            => GetHeight(Target) * Value / 100d,
+            Units.FontSize              => Target?.GetValue(TextElement.FontSizeProperty) * Value, // not percent
+            Units.ViewPortWidth         => TopLevel.GetTopLevel(Target)?.ClientSize.Width * Value / 100d,
+            Units.ViewPortHeight        => TopLevel.GetTopLevel(Target)?.ClientSize.Height * Value / 100d,
+            _                           => throw new ArgumentOutOfRangeException($"{Unit} is not implemented by now.")
+        };
+        return result ?? throw new NullReferenceException("Relative source returns a null value.");
+    }
+
+    private static double GetWidth(Visual? source) {
+        if (source is null)
+            throw new NullReferenceException("The relative source does not exist.");
+        double width = source.GetValue(Layoutable.WidthProperty);
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (width is not double.NaN and not double.PositiveInfinity and not double.NegativeInfinity)
+            return width;
+        return source.Bounds.Width;
+    }
+
+    private static double GetHeight(Visual? source) {
+        if (source is null)
+            throw new NullReferenceException("The relative source does not exist.");
+        double height = source.GetValue(Layoutable.HeightProperty);
+        // ReSharper disable once ConvertIfStatementToReturnStatement
+        if (height is not double.NaN and not double.PositiveInfinity and not double.NegativeInfinity)
+            return height;
+        return source.Bounds.Height;
+    }
+
+    public static double Calc(string s, Visual? visual = null) {
+        double value = 0;
+        s = s.Trim();
+        if (s.Length == 0)
+            return 0;
+        int begin = 0;
+        bool isPositive = s[0] != '-';
+        for (int i = 1; i < s.Length; i++) {
+            if (s[i] is not ('+' or '-'))
+                continue;
+            value += CalcSingle(s[begin..i]);
+            if (!isPositive)
+                value *= -1;
+            isPositive = s[i] == '+';
+            begin = i + 1;
+        }
+
+        value += CalcSingle(s[begin..]);
+        return value;
+
+        double CalcSingle(string length) {
+            length = length.Trim();
+            if (char.IsNumber(length[^1]))
+                return Convert.ToDouble(length);
+
+            int i = length.Length - 2;
+            while (!(char.IsNumber(length[i]) || length[i] == '.'))
+                --i;
+
+            return new CalcRelative(
+                Convert.ToDouble(length[..(i + 1)]),
+                Converters.StringToUnit(length[(i + 1)..]),
+                visual).Calc();
+        }
+    }
+
+    public static double Calc(double value, Units unit = Units.Pixel, Visual? target = null) {
+        if (unit.IsAbsolute()) {
+            // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+            return unit switch {
+                Units.Pixel      => value,
+                Units.Centimeter => 96 / 2.54 * value,
+                Units.Millimeter => 96 / 2.54 * value / 1000,
+                Units.Inch       => 96 * value,
+                _                => throw new ArgumentOutOfRangeException(nameof(unit))
+            };
+        }
+
+        // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
+        double? result = unit switch {
+            Units.TemplatedParentWidth  => GetWidth(target?.TemplatedParent as Visual) * value / 100d,
+            Units.TemplatedParentHeight => GetHeight(target?.TemplatedParent as Visual) * value / 100d,
+            Units.LogicalParentWidth    => GetWidth(target?.Parent as Visual) * value / 100d,
+            Units.LogicalParentHeight   => GetHeight(target?.Parent as Visual) * value / 100d,
+            Units.VisualParentWidth     => GetWidth(target?.GetVisualParent()) * value / 100d,
+            Units.VisualParentHeight    => GetHeight(target?.GetVisualParent()) * value / 100d,
+            Units.SelfWidth             => GetWidth(target) * value / 100d,
+            Units.SelfHeight            => GetHeight(target) * value / 100d,
+            Units.FontSize              => target?.GetValue(TextElement.FontSizeProperty) * value, // not percent
+            Units.ViewPortWidth         => TopLevel.GetTopLevel(target)?.ClientSize.Width * value / 100d,
+            Units.ViewPortHeight        => TopLevel.GetTopLevel(target)?.ClientSize.Height * value / 100d,
+            _                           => throw new ArgumentOutOfRangeException(nameof(unit))
+        };
+
+        return result ?? throw new NullReferenceException("Relative source returns a null value.");
     }
 }

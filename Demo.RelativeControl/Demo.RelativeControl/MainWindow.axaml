@@ -13,26 +13,24 @@
         </Style>
     </Window.Styles>
     <Grid RowDefinitions="Auto,4,*" ColumnDefinitions="Auto,4,*">
-        <Border Grid.Row="0" Grid.Column="0">
+        <Border Grid.Row="0" Grid.Column="0"
+                r:Relative.OneTimeWidth="50vw"
+                r:Relative.OneTimeHeight="50vh">
+
             <ScrollViewer Name="Container"
-                          r:Relative.Width="50pw"
-                          r:Relative.Height="50ph">
-                <!-- r:Relative.Width="50pw"  // This sets its width to 50% parent width.
-                 r:Relative.Height="50ph" // This sets its height to 50% parent height. -->
+                          r:Relative.Width="50vw"
+                          r:Relative.Height="50vh">
                 <ListBox>
                     <ListBoxItem>
                         <TextBlock Name="First"
                                    Text="{Binding #Right.Bounds.Width}"
                                    r:Relative.Width="70pw" />
-                        <!-- r:Relative.Width="70pw" // This sets its width to 70% parent width. -->
                     </ListBoxItem>
                     <ListBoxItem>
                         <TextBlock Name="Second"
                                    Text="{r:RelativeBinding {Binding #First.Text},50%}"
-                                   r:Relative.Width="30vw"
-                                   r:Relative.Height="5ph" />
-                        <!-- Text="{r:RelativeBinding {Binding #Block.Text},50%}" // This sets its content to 50% of #Block.Text(the Text property's value of TextBlock named 'Block' above)
-                     r:Relative.Width="30vw" // This sets its width to 30% window width-->
+                                   r:Relative.Width="30pw"
+                                   r:Relative.Height="5vh+20ph" />
                     </ListBoxItem>
                     <ListBoxItem>
                         <WrapPanel>

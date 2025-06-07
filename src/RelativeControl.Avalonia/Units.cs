@@ -91,6 +91,21 @@ public static class Converters {
 }
 
 public static class Extensions {
+    public static AbsoluteUnits AsAbsolute(this Units unit) {
+        if (unit.IsAbsolute())
+            return (AbsoluteUnits)unit;
+        throw new InvalidCastException($"Unit {unit} is not a absolute unit.");
+    }
+
+    public static RelativeUnits AsRelative(this Units unit) {
+        if (unit.IsAbsolute())
+            return (RelativeUnits)unit;
+        throw new InvalidCastException($"Unit {unit} is not a absolute unit.");
+    }
+
+    public static Units ToUnit(this RelativeUnits unit) { return (Units)unit; }
+    public static Units ToUnit(this AbsoluteUnits unit) { return (Units)unit; }
+
     public static bool IsAbsolute(this Units unit) { return Enum.IsDefined(typeof(AbsoluteUnits), (ushort)unit); }
 
     public static bool IsRelative(this Units unit) { return Enum.IsDefined(typeof(RelativeUnits), (ushort)unit); }
