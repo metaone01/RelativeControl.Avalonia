@@ -18,10 +18,11 @@ public class RelativeTest {
             true);
         Assert.StrictEqual(0.5 * window.Width, button.Width);
     }
+
     [AvaloniaFact]
     public void Test_Relative_SetBeforeShow_With_Source_Control() {
         Button button = new();
-        Border border = new() {Width=1440,Child=button};
+        Border border = new() { Width = 1440, Child = button };
         Window window = new() { Width = 1920, Content = border };
         Relative.SetWidth(button, "50pw");
         window.Show();
@@ -31,8 +32,8 @@ public class RelativeTest {
             true);
         Assert.StrictEqual(0.5 * border.Width, button.Width);
     }
-    
-    
+
+
     [AvaloniaFact]
     public void Test_Relative_SetWidth() {
         Button button = new();
@@ -54,7 +55,8 @@ public class RelativeTest {
         Relative.SetHeight(button, "50ph");
         Assert.Equivalent(
             new RelativeLength(50, Units.LogicalParentHeight, button),
-            button.GetValue(Relative.HeightProperty),true);
+            button.GetValue(Relative.HeightProperty),
+            true);
         Assert.StrictEqual(0.5 * window.Height, button.Height);
     }
 
@@ -70,7 +72,8 @@ public class RelativeTest {
                 new RelativeLength(30, Units.LogicalParentWidth, button),
                 new RelativeLength(40, Units.LogicalParentHeight, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button)),
-            button.GetValue(Relative.CornerRadiusProperty),true);
+            button.GetValue(Relative.CornerRadiusProperty),
+            true);
         Assert.StrictEqual(
             new CornerRadius(window.Width * 0.2, window.Width * 0.3, window.Height * 0.4, window.Height * 0.5),
             button.CornerRadius);
@@ -88,7 +91,8 @@ public class RelativeTest {
                 new RelativeLength(30, Units.LogicalParentWidth, button),
                 new RelativeLength(40, Units.LogicalParentHeight, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button)),
-            button.GetValue(Relative.BorderThicknessProperty),true);
+            button.GetValue(Relative.BorderThicknessProperty),
+            true);
         Assert.StrictEqual(
             new Thickness(window.Width * 0.2, window.Width * 0.3, window.Height * 0.4, window.Height * 0.5),
             button.BorderThickness);
@@ -106,7 +110,8 @@ public class RelativeTest {
                 new RelativeLength(30, Units.LogicalParentWidth, button),
                 new RelativeLength(40, Units.LogicalParentHeight, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button)),
-            button.GetValue(Relative.MarginProperty),true);
+            button.GetValue(Relative.MarginProperty),
+            true);
         Assert.StrictEqual(
             new Thickness(window.Width * 0.2, window.Width * 0.3, window.Height * 0.4, window.Height * 0.5),
             button.Margin);
@@ -124,7 +129,8 @@ public class RelativeTest {
                 new RelativeLength(30, Units.LogicalParentWidth, button),
                 new RelativeLength(40, Units.LogicalParentHeight, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button)),
-            button.GetValue(Relative.PaddingProperty),true);
+            button.GetValue(Relative.PaddingProperty),
+            true);
         Assert.StrictEqual(
             new Thickness(window.Width * 0.2, window.Width * 0.3, window.Height * 0.4, window.Height * 0.5),
             button.Padding);
@@ -138,7 +144,8 @@ public class RelativeTest {
         Relative.SetMinWidth(button, "20pw");
         Assert.Equivalent(
             new RelativeLength(20, Units.LogicalParentWidth, button),
-            button.GetValue(Relative.MinWidthProperty),true);
+            button.GetValue(Relative.MinWidthProperty),
+            true);
         Assert.StrictEqual(0.2 * window.Width, button.MinWidth);
     }
 
@@ -150,7 +157,8 @@ public class RelativeTest {
         Relative.SetMaxWidth(button, "20pw");
         Assert.Equivalent(
             new RelativeLength(20, Units.LogicalParentWidth, button),
-            button.GetValue(Relative.MaxWidthProperty),true);
+            button.GetValue(Relative.MaxWidthProperty),
+            true);
         Assert.StrictEqual(0.2 * window.Width, button.MaxWidth);
     }
 
@@ -162,7 +170,8 @@ public class RelativeTest {
         Relative.SetMinHeight(button, "20ph");
         Assert.Equivalent(
             new RelativeLength(20, Units.LogicalParentHeight, button),
-            button.GetValue(Relative.MinHeightProperty),true);
+            button.GetValue(Relative.MinHeightProperty),
+            true);
         Assert.StrictEqual(0.2 * window.Height, button.MinHeight);
     }
 
@@ -174,7 +183,8 @@ public class RelativeTest {
         Relative.SetMaxHeight(button, "20ph");
         Assert.Equivalent(
             new RelativeLength(20, Units.LogicalParentHeight, button),
-            button.GetValue(Relative.MaxHeightProperty),true);
+            button.GetValue(Relative.MaxHeightProperty),
+            true);
         Assert.StrictEqual(0.2 * window.Height, button.MaxHeight);
     }
 
@@ -194,7 +204,8 @@ public class RelativeSingleValueChangedTest {
         Relative.SetWidth(button, "50pw");
         Assert.Equivalent(
             new RelativeLength(50, Units.LogicalParentWidth, button),
-            button.GetValue(Relative.WidthProperty),true);
+            button.GetValue(Relative.WidthProperty),
+            true);
         Assert.StrictEqual(0.5 * border.Width, button.Width);
 
         border.Width = 800;
@@ -249,7 +260,8 @@ public class RelativeSingleValueChangedTest {
                 new RelativeLength(30, Units.LogicalParentWidth, button),
                 new RelativeLength(40, Units.LogicalParentHeight, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button)),
-            button.GetValue(Relative.BorderThicknessProperty),true);
+            button.GetValue(Relative.BorderThicknessProperty),
+            true);
         Assert.StrictEqual(
             new Thickness(border.Width * 0.2, border.Width * 0.3, border.Height * 0.4, border.Height * 0.5),
             button.BorderThickness);
@@ -278,7 +290,8 @@ public class RelativeMultiValueTest {
         Assert.Equivalent(
             new RelativeLength(50, Units.LogicalParentWidth, button) +
             new RelativeLength(20, Units.LogicalParentHeight, button),
-            button.GetValue(Relative.WidthProperty),true);
+            button.GetValue(Relative.WidthProperty),
+            true);
         Assert.StrictEqual(0.5 * window.Width + 0.2 * window.Height, button.Width);
     }
 
@@ -298,7 +311,8 @@ public class RelativeMultiValueTest {
                 new RelativeLength(20, Units.LogicalParentWidth, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button) +
                 new RelativeLength(10, Units.LogicalParentWidth, button)),
-            button.GetValue(Relative.CornerRadiusProperty),true);
+            button.GetValue(Relative.CornerRadiusProperty),
+            true);
         Assert.StrictEqual(
             new CornerRadius(
                 window.Width * 0.2 + window.Height * 0.4,
@@ -324,7 +338,8 @@ public class RelativeMultiValueTest {
                 new RelativeLength(20, Units.LogicalParentWidth, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button) +
                 new RelativeLength(10, Units.LogicalParentWidth, button)),
-            button.GetValue(Relative.BorderThicknessProperty),true);
+            button.GetValue(Relative.BorderThicknessProperty),
+            true);
         Assert.StrictEqual(
             new Thickness(
                 window.Width * 0.2 + window.Height * 0.4,
@@ -346,7 +361,8 @@ public class RelativeMultiValueChangedTest {
         Assert.Equivalent(
             new RelativeLength(50, Units.LogicalParentWidth, button) +
             new RelativeLength(20, Units.LogicalParentHeight, button),
-            button.GetValue(Relative.WidthProperty),true);
+            button.GetValue(Relative.WidthProperty),
+            true);
         Assert.StrictEqual(0.5 * border.Width + 0.2 * border.Height, button.Width);
 
         border.Width = 800;
@@ -375,7 +391,8 @@ public class RelativeMultiValueChangedTest {
                 new RelativeLength(20, Units.LogicalParentWidth, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button) +
                 new RelativeLength(10, Units.LogicalParentWidth, button)),
-            button.GetValue(Relative.CornerRadiusProperty),true);
+            button.GetValue(Relative.CornerRadiusProperty),
+            true);
         Assert.StrictEqual(
             new CornerRadius(
                 border.Width * 0.2 + border.Height * 0.4,
@@ -422,7 +439,8 @@ public class RelativeMultiValueChangedTest {
                 new RelativeLength(20, Units.LogicalParentWidth, button),
                 new RelativeLength(50, Units.LogicalParentHeight, button) +
                 new RelativeLength(10, Units.LogicalParentWidth, button)),
-            button.GetValue(Relative.BorderThicknessProperty),true);
+            button.GetValue(Relative.BorderThicknessProperty),
+            true);
         Assert.StrictEqual(
             new Thickness(
                 border.Width * 0.2 + border.Height * 0.4,

@@ -29,11 +29,6 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
     /// </summary>
     public readonly RelativeLengthBase TopRight;
 
-    public CornerRadius ActualValue => ActualCornerRadius;
-
-    public CornerRadius ActualCornerRadius =>
-        new(TopLeft.ActualPixels, BottomLeft.ActualPixels, TopRight.ActualPixels, BottomRight.ActualPixels);
-
     public RelativeCornerRadius(RelativeLengthBase uniformRadius) {
         TopLeft = TopRight = BottomLeft = BottomRight = uniformRadius;
         Register();
@@ -51,11 +46,34 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
         Register();
     }
 
+    public CornerRadius ActualCornerRadius =>
+        new(TopLeft.ActualPixels, BottomLeft.ActualPixels, TopRight.ActualPixels, BottomRight.ActualPixels);
+
 
     /// <summary>
     ///     Gets a value indicating whether all relative corner radii are equal.
     /// </summary>
     public bool IsUniform => TopLeft.Equals(TopRight) && BottomLeft.Equals(BottomRight) && TopRight.Equals(BottomRight);
+
+    /// <summary>
+    ///     Returns a boolean indicating whether the corner radius is equal to the other given relative corner radius.
+    /// </summary>
+    /// <param name="other">The other relative corner radius to test equality against.</param>
+    /// <returns>True if this relative corner radius is equal to other; False otherwise.</returns>
+    public bool Equals(RelativeCornerRadius? other) {
+        return TopLeft == other?.TopLeft &&
+               TopRight == other.TopRight &&
+               BottomRight == other.BottomRight &&
+               BottomLeft == other.BottomLeft;
+    }
+
+    public CornerRadius ActualValue => ActualCornerRadius;
+
+    public event RelativeChangedEventHandler<CornerRadius>? RelativeChanged;
+
+    public CornerRadius Absolute() {
+        return new CornerRadius(TopLeft.Absolute(), TopRight.Absolute(), BottomRight.Absolute(), BottomLeft.Absolute());
+    }
 
     public static RelativeCornerRadius operator +(RelativeCornerRadius left, RelativeCornerRadius right) {
         return new RelativeCornerRadius(
@@ -91,30 +109,11 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
             left.BottomLeft / scale);
     }
 
-    /// <summary>
-    ///     Returns a boolean indicating whether the corner radius is equal to the other given relative corner radius.
-    /// </summary>
-    /// <param name="other">The other relative corner radius to test equality against.</param>
-    /// <returns>True if this relative corner radius is equal to other; False otherwise.</returns>
-    public bool Equals(RelativeCornerRadius? other) {
-        return TopLeft == other?.TopLeft &&
-               TopRight == other.TopRight &&
-               BottomRight == other.BottomRight &&
-               BottomLeft == other.BottomLeft;
-    }
-
-    public event RelativeChangedEventHandler<CornerRadius>? RelativeChanged;
-
-    public CornerRadius Absolute() {
-        return new CornerRadius(TopLeft.Absolute(), TopRight.Absolute(), BottomRight.Absolute(), BottomLeft.Absolute());
-    }
-
     private void Register() {
         TopLeft.RelativeChanged += UpdateTopLeft;
         TopRight.RelativeChanged += UpdateTopRight;
         BottomRight.RelativeChanged += UpdateBottomRight;
         BottomLeft.RelativeChanged += UpdateBottomLeft;
-        return;
     }
 
     private void UpdateTopLeft(IRelative<double>? _, RelativeChangedEventArgs<double> args) {

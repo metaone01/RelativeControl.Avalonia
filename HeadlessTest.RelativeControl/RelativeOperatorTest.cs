@@ -156,7 +156,7 @@ public class RelativeOperatorSourceUnchangedTest {
         RelativeLength a = new(20, Units.LogicalParentWidth, border);
         RelativeScale b = 0.2;
         RelativeLength la = a.Copy();
-        var d = a / b;
+        LightSingleRelativeLength d = a / b;
         Assert.Equivalent(a, la, true);
         Assert.Equivalent(a / 0.2, d, true);
     }

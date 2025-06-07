@@ -28,11 +28,6 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
     /// </summary>
     public readonly RelativeLengthBase Top;
 
-    public Thickness ActualThickness =>
-        new(Left.ActualPixels, Right.ActualPixels, Top.ActualPixels, Bottom.ActualPixels);
-
-    public Thickness ActualValue => ActualThickness;
-
     /// <summary>
     ///     Initializes a new instance of the <see cref="RelativeThickness" /> structure.
     /// </summary>
@@ -72,10 +67,31 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
         Register();
     }
 
+    public Thickness ActualThickness =>
+        new(Left.ActualPixels, Right.ActualPixels, Top.ActualPixels, Bottom.ActualPixels);
+
     /// <summary>
     ///     Gets a value indicating whether all sides are equal.
     /// </summary>
     public bool IsUniform => Left == Right && Top == Bottom && Left == Top;
+
+    /// <summary>
+    ///     Returns a boolean indicating whether the relative thickness is equal to the other given point.
+    /// </summary>
+    /// <param name="other">The other relative thickness to test equality against.</param>
+    /// <returns>True if this relative thickness is equal to other; False otherwise.</returns>
+    public bool Equals(RelativeThickness? other) {
+        return Left == other?.Left && Top == other.Top && Right == other.Right && Bottom == other.Bottom;
+    }
+
+    public Thickness ActualValue => ActualThickness;
+
+
+    public event RelativeChangedEventHandler<Thickness>? RelativeChanged;
+
+    public Thickness Absolute() {
+        return new Thickness(Left.Absolute(), Top.Absolute(), Right.Absolute(), Bottom.Absolute());
+    }
 
     /// <summary>
     ///     Adds two RelativeThicknesses.
@@ -126,18 +142,6 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
         return new RelativeThickness(left.Left / scaler, left.Top / scaler, left.Right / scaler, left.Bottom / scaler);
     }
 
-    /// <summary>
-    ///     Returns a boolean indicating whether the relative thickness is equal to the other given point.
-    /// </summary>
-    /// <param name="other">The other relative thickness to test equality against.</param>
-    /// <returns>True if this relative thickness is equal to other; False otherwise.</returns>
-    public bool Equals(RelativeThickness? other) {
-        return Left == other?.Left && Top == other.Top && Right == other.Right && Bottom == other.Bottom;
-    }
-
-
-    public event RelativeChangedEventHandler<Thickness>? RelativeChanged;
-
     private void Register() {
         Left.RelativeChanged += UpdateLeft;
         Top.RelativeChanged += UpdateTop;
@@ -175,10 +179,6 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
             new RelativeChangedEventArgs<Thickness>(
                 new Thickness(Left.ActualPixels, Top.ActualPixels, Right.ActualPixels, args.OldValue),
                 ActualThickness));
-    }
-
-    public Thickness Absolute() {
-        return new Thickness(Left.Absolute(), Top.Absolute(), Right.Absolute(), Bottom.Absolute());
     }
 
 

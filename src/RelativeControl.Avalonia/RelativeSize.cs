@@ -6,7 +6,6 @@ using Vector = Avalonia.Vector;
 
 namespace RelativeControl.Avalonia;
 
-
 /// <summary>
 ///     Defines a size.
 /// </summary>
@@ -30,10 +29,6 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
     /// </summary>
     public readonly RelativeLengthBase Width;
 
-    public Size ActualSize => new(Width.ActualPixels, Height.ActualPixels);
-
-    public Size ActualValue => ActualSize;
-    
     /// <summary>
     ///     Initializes a new instance of the <see cref="RelativeSize" /> structure.
     /// </summary>
@@ -55,10 +50,25 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
         new RelativeLength(vector2.X, xUnit),
         new RelativeLength(vector2.Y, yUnit)) { }
 
+    public Size ActualSize => new(Width.ActualPixels, Height.ActualPixels);
+
     /// <summary>
     ///     Gets the aspect ratio of the size.
     /// </summary>
     public double AspectRatio => Width.ActualPixels / Height.ActualPixels;
+
+    /// <summary>
+    ///     Returns a boolean indicating whether the size is equal to the other given size (bitwise).
+    /// </summary>
+    /// <param name="other">The other size to test equality against.</param>
+    /// <returns>True if this size is equal to other; False otherwise.</returns>
+    public bool Equals(RelativeSize? other) { return Width == other?.Width && Height == other.Height; }
+
+    public Size ActualValue => ActualSize;
+
+    public event RelativeChangedEventHandler<Size>? RelativeChanged;
+
+    public Size Absolute() { return new Size(Width.Absolute(), Height.Absolute()); }
 
     public static RelativeSize operator +(RelativeSize size, RelativeSize toAdd) {
         return new RelativeSize(size.Width + toAdd.Width, size.Height + toAdd.Height);
@@ -96,15 +106,6 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
         return new RelativeSize(size.Width / scale, size.Height / scale);
     }
 
-    /// <summary>
-    ///     Returns a boolean indicating whether the size is equal to the other given size (bitwise).
-    /// </summary>
-    /// <param name="other">The other size to test equality against.</param>
-    /// <returns>True if this size is equal to other; False otherwise.</returns>
-    public bool Equals(RelativeSize? other) { return Width == other?.Width && Height == other.Height; }
-
-    public event RelativeChangedEventHandler<Size>? RelativeChanged;
-
 
     private void Register() {
         Width.RelativeChanged += UpdateWidth;
@@ -122,8 +123,6 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
             this,
             new RelativeChangedEventArgs<Size>(new Size(Width.ActualPixels, args.OldValue), ActualSize));
     }
-
-    public Size Absolute() { return new Size(Width.Absolute(), Height.Absolute()); }
 
     /// <summary>
     ///     Returns the string representation of the size.

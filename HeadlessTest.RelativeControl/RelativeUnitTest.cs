@@ -95,6 +95,7 @@ public class RelativeUnitTest {
         Relative.SetHeight(textBlock, "2em");
         Assert.StrictEqual(2 * textBlock.FontSize, textBlock.Height);
     }
+
     [AvaloniaFact]
     public void Test_Relative_Unit_ViewPortWidth() {
         Border border = new();

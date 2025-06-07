@@ -20,8 +20,8 @@ dotnet add package RelativeControl.Avalonia
 	<Button r:Relative.Width="50vw"/>
 </Window>
 ```
-> Relative values need a instance (its target) to initialize, so it cannot be set in a `Setter`.
 
+> Relative values need a instance (its target) to initialize, so it cannot be set in a `Setter`.
 
 #### Bind Custom Properties:
 
@@ -37,8 +37,9 @@ dotnet add package RelativeControl.Avalonia
 > That ensures the binding can get the source control's actual width or height.
 
 
-[See usages in demo](./Demo.RelativeControl/Demo.RelativeControl/README.md)
+[See Usages in Demo](./Demo.RelativeControl/Demo.RelativeControl/README.md)
 
+[More Info](./API%20References.md)
 
 ## Units
 
@@ -66,7 +67,7 @@ dotnet add package RelativeControl.Avalonia
 
 ## Supported Properties
 
-### \>=0.0.5
+### 0.0.5
 
 - Width
 - Height
@@ -77,14 +78,22 @@ dotnet add package RelativeControl.Avalonia
 - BorderThickness
 - CornerRadius
 
-### \>=0.1.0
+### 0.1.0
 
 - Margin
 - Padding
 
-### \>=1.0.0
+### 1.0.0-alpha
 
+- RelativeBinding
 - All Custom Properties! *[How to bind a custom property?](#bind-custom-properties)*
+
+### 1.0.0-beta
+
+- SetOneTimeWidth
+- SetOneTimeHeight
+- RelativeBindOneTime
+
 
 ## Breaking Changes
 
@@ -153,7 +162,7 @@ Relative units are using percentages (Excepts `em`). To make it more like *css*.
 
 - SetTarget
 ```
- 
+
 #### 1.0.0-beta:
 
 ```diff

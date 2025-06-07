@@ -39,10 +39,14 @@ public class Relative : AvaloniaObject {
             RelativeCornerRadius.Empty);
 
     public static readonly AttachedProperty<IRelative<Thickness>> MarginProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<Thickness>>("Margin", RelativeThickness.Empty);
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<Thickness>>(
+            "Margin",
+            RelativeThickness.Empty);
 
     public static readonly AttachedProperty<IRelative<Thickness>> PaddingProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<Thickness>>("Padding", RelativeThickness.Empty);
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<Thickness>>(
+            "Padding",
+            RelativeThickness.Empty);
 
 
     static Relative() {
@@ -298,7 +302,7 @@ public class Relative : AvaloniaObject {
         return;
 
         void Update(object? _ = null, VisualTreeAttachmentEventArgs? __ = null) {
-            visual.SetValue(Layoutable.WidthProperty, CalcRelative.Calc(s, visual));
+            visual.SetValue(Layoutable.WidthProperty, RelativeCalc.Calc(s, visual));
         }
     }
 
@@ -309,7 +313,7 @@ public class Relative : AvaloniaObject {
         return;
 
         void Update(object? _ = null, VisualTreeAttachmentEventArgs? __ = null) {
-            visual.SetValue(Layoutable.HeightProperty, CalcRelative.Calc(s, visual));
+            visual.SetValue(Layoutable.HeightProperty, RelativeCalc.Calc(s, visual));
         }
     }
 }

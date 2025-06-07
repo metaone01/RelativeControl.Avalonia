@@ -17,6 +17,7 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="../../README.md" Pack="true" PackagePath=""/>
+        <None Include="../../API References.md" Pack="true" PackagePath=""/>
     </ItemGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>

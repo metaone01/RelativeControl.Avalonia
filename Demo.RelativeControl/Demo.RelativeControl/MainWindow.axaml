@@ -60,9 +60,7 @@
         <Border Name="Bottom" MinWidth="20" MinHeight="20" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                 Background="Plum" />
         <Border Name="RightBottom" MinWidth="20" MinHeight="20" Grid.Row="2" Grid.Column="2" Background="HotPink">
-            <TextBlock>
-
-            </TextBlock>
+            <TextBlock />
         </Border>
 
     </Grid>
