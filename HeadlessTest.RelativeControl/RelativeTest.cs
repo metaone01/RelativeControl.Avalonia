@@ -7,7 +7,7 @@ namespace HeadlessTest.RelativeControl;
 
 public class RelativeTest {
     [AvaloniaFact]
-    public void Test_Relative_SetBeforeShow_With_Source_Window() {
+    public void Test_Relative_SetBeforeShow_When_Source_Is_Window() {
         Button button = new();
         Window window = new() { Width = 1440, Content = button };
         Relative.SetWidth(button, "50vw");
@@ -20,7 +20,7 @@ public class RelativeTest {
     }
 
     [AvaloniaFact]
-    public void Test_Relative_SetBeforeShow_With_Source_Control() {
+    public void Test_Relative_SetBeforeShow_When_Source_Is_Control() {
         Button button = new();
         Border border = new() { Width = 1440, Child = button };
         Window window = new() { Width = 1920, Content = border };
@@ -468,5 +468,28 @@ public class RelativeMultiValueChangedTest {
                 border.Height * 0.4 + border.Width * 0.2,
                 border.Height * 0.5 + border.Width * 0.1),
             button.BorderThickness);
+    }
+    [AvaloniaFact]
+    public void Test_Relative_SetOneTimeWidth() {
+        Button button = new();
+        Border border = new() { Width = 1440, Child = button };
+        Window window = new() { Width = 1920, Content = border };
+        window.Show();
+        Relative.SetOneTimeWidth(button, "50pw");
+        Assert.StrictEqual(0.5 * border.Width, button.Width);
+        border.Width = 800;
+        Assert.StrictEqual(0.5 * 1440, button.Width);
+        
+    }
+    [AvaloniaFact]
+    public void Test_Relative_SetOneTimeHeight() {
+        Button button = new();
+        Border border = new() { Height = 900, Child = button };
+        Window window = new() { Height = 1080, Content = border };
+        window.Show();
+        Relative.SetOneTimeHeight(button, "50ph");
+        Assert.StrictEqual(0.5 * border.Height, button.Height);
+        border.Height = 600;
+        Assert.StrictEqual(0.5 * 900, button.Height);
     }
 }

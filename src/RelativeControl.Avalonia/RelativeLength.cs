@@ -451,6 +451,30 @@ public sealed class RelativeLengthMerge : RelativeLengthCollection {
         return lightCopy;
     }
 
+    public new static RelativeLengthMerge Parse(string s, Visual? visual = null) {
+        return new RelativeLengthMerge(ParseSingle(s, visual));
+    }
+
+    private static IEnumerable<RelativeLength> ParseSingle(string s, Visual? visual = null) {
+        s = s.Trim();
+        if (s.Length == 0)
+            yield break;
+        int begin = 0;
+        bool isPositive = s[0] != '-';
+        for (int i = 1; i < s.Length; i++) {
+            if (s[i] is not ('+' or '-'))
+                continue;
+            RelativeLength length = RelativeLength.Parse(s[begin..i], visual);
+            if (!isPositive)
+                length.Multiply(-1);
+            yield return length;
+            isPositive = s[i] == '+';
+            begin = i + 1;
+        }
+
+        yield return RelativeLength.Parse(s[begin..], visual);
+    }
+
     ~RelativeLengthMerge() {
         foreach (RelativeLengthBase length in Children)
             length.RelativeChanged -= Update;

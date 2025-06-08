@@ -2,44 +2,119 @@
 
 This provides some relative units and features for [Avalonia](https://github.com/AvaloniaUI/Avalonia).
 
+[See Usages in Demo](./Demo.RelativeControl/Demo.RelativeControl/MainWindow.axaml)
+
+[More Info](./API%20References.md)
+
 ## Get Started
 
-#### Add nuget package:
+### Add nuget package:
 
 ```bash
 dotnet add package RelativeControl.Avalonia
 ```
 
-#### Use `Relative` in controls.
+
+### Set a `double` via RelativeLength / RelativeLengthMerge:
 
 ```xaml
-<Window 
-    ...
-    xmlns:r="https://github.com/metaone01/RelativeControl.Avalonia"
-    ...>
-	<Button r:Relative.Width="50vw"/>
-</Window>
+<CONTROL r:Relative.Width="20pw"/>
 ```
 
-> Relative values need a instance (its target) to initialize, so it cannot be set in a `Setter`.
-
-#### Bind Custom Properties:
-
-*requires Version>=1.0.0*
-
-```xaml
-<Button YourCustomProperty="{r:RelativeBinding {Binding RELATIVE_PROPERTY},50%}">
-</Button>
-```
-
-> If you want to bind from a `Width` or `Height`, please use `Bounds.Width` or `Bounds.Height` instead.
+> This will set the control's width to 20% of its logical parent's width.
 >
-> That ensures the binding can get the source control's actual width or height.
+> You can also add / subtract the values:
+> ```xaml
+> <CONTROL r:Relative.Width="20pw+10ph"/>
+> ```
+>
+> This will set the control's width to :
+>
+> 20% logical parent width + 10% logical parent height.
 
+> You can also add / subtract / multiply / divide the value at code behind.
 
-[See Usages in Demo](./Demo.RelativeControl/Demo.RelativeControl/README.md)
+> Use `Relative.SetOneTimeWidth` / `Relative.SetOneTimeHeight` to set its value only once when attached to visual tree.
 
-[More Info](./API%20References.md)
+Other properties using RelativeLength:
+
+- Relative.Height
+- Relative.MinWidth
+- Relative.MinHeight
+- Relative.MaxWidth
+- Relative.MaxHeight
+- Relative.SetOneTimeWidth
+- Relative.SetOneTimeHeight
+
+### Set a `CornerRadius` via RelativeCornerRadius :
+
+```xaml
+<CONTROL r:Relative.CornerRadius="10sw 10sw+5sh 10sh-5sw 10sh"/>
+```
+
+> This will set the control's CornerRadius to:
+>
+> TopLeft = 10% width,
+>
+> TopRight = 10% width + 5% height,
+>
+> BottomRight = 10% height - 5% width,
+>
+> BottomLeft = 10% height
+
+### Set a `Thickness` via RelativeThickness:
+
+```xaml
+<CONTROL r:Relative.BorderThickness="1em 2em-5px"/>
+```
+
+> This will set the control's BorderThickness to:
+>
+> Horizontal(Left,Right) = 1x FontSize,
+> Vertical(Top,Bottom) = 2x FontSize - 5px
+
+Other properties using RelativeThickness:
+
+- Relative.Margin
+- Relative.Padding
+
+### Bind any property
+
+```xaml
+<CONTROL PROPERTY="{r:RelativeBinding {Binding SOURCE_PROPERTY},50%}"/>
+```
+
+> This will set the property to 50% of `SOURCE_PROPERTY`'s value.
+>
+> A valid `SourceProperty`'s value type must be:
+> - double
+> - any value that can convert to double (like a number string)
+> - any custom structs or classes that inherits IMulDiv\<RelativeScale\> or IMulDiv\<double\>.
+
+> Use `RelativeBindOneTime` to update its value only once when the control is attached to visual tree.
+
+### Use Relatives in your custom property:
+
+#### StyledProperty:
+
+```csharp
+public static readonly StyledProperty<IRelative<T>> XXXProperty = 
+    AvaloniaProperty.Register<..., IRelative<T>>(nameof(XXX));
+```
+
+#### DirectProperty:
+
+```csharp
+public static readonly DirectProperty<..., IRelative<T>> XXXProperty = 
+    AvaloniaProperty.RegisterDirect<..., IRelative<T>>(...);
+```
+
+#### AttachedProperty:
+
+```csharp
+public static readonly AttachedProperty<IRelative<T>> XXXProperty = 
+    AvaloniaProperty.RegisterAttached<...,...,IRelative<T>>(...);
+```
 
 ## Units
 
@@ -65,7 +140,7 @@ dotnet add package RelativeControl.Avalonia
            vh: Window's height
             %: Only used for custom bindings. Represents percentage.
 
-## Supported Properties
+## Minimum Version of using an API
 
 ### 0.0.5
 
@@ -86,7 +161,7 @@ dotnet add package RelativeControl.Avalonia
 ### 1.0.0-alpha
 
 - RelativeBinding
-- All Custom Properties! *[How to bind a custom property?](#bind-custom-properties)*
+> You can bind any property! *[How to bind a custom property?](#bind-any-property)*
 
 ### 1.0.0-beta
 
@@ -94,6 +169,7 @@ dotnet add package RelativeControl.Avalonia
 - SetOneTimeHeight
 - RelativeBindOneTime
 
+> The property will update only once when target attached to visual tree!
 
 ## Breaking Changes
 
