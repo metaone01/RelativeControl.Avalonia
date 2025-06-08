@@ -16,7 +16,6 @@ This provides some relative units and features for [Avalonia](https://github.com
 dotnet add package RelativeControl.Avalonia
 ```
 
-
 ### Set a property whose value is `double`
 
 ```xaml
@@ -35,8 +34,12 @@ dotnet add package RelativeControl.Avalonia
 > 20% logical parent width + 10% logical parent height.
 
 > You can also add / subtract / multiply / divide the value at code behind.
+>
+> - Multiply() and Divide() will affect the instance and all its references.
+> - \* or / operation will create a light copy and will not affect the instance.
 
-> `Relative.SetOneTimeWidth` and `Relative.SetOneTimeHeight` will update only once when the control is attached to visual tree.
+> `Relative.SetOneTimeWidth` and `Relative.SetOneTimeHeight` will update only once when the control is attached to
+> visual tree.
 
 Other properties using `RelativeLength` / `RelativeLengthMerge`:
 
@@ -73,7 +76,7 @@ Other properties using `RelativeLength` / `RelativeLengthMerge`:
 > This will set the `CONTROL`'s BorderThickness to:
 >
 > Horizontal(Left,Right) = 1x FontSize,
-> 
+>
 > Vertical(Top,Bottom) = 2x FontSize - 5px
 
 Other properties using `RelativeThickness`:
@@ -123,7 +126,7 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
 
 #### Absolute Units:
 
-    px: Pixel
+    px: Device-independent Pixel(1/96th of an inch)
     cm: Centimeter
     mm: Millimeter
     in: Inch
@@ -141,7 +144,7 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
            em: The control's FontSize
            vw: Window's width
            vh: Window's height
-            %: Only used for custom bindings. Represents percentage.
+            %: Represents percentage. Only used for custom bindings. 
 
 ## Minimum Available Version of an API
 
@@ -164,6 +167,7 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
 ### 1.0.0-alpha
 
 - RelativeBinding
+
 > You can bind any property! *[How to bind a custom property?](#bind-any-property)*
 
 ### 1.0.0-beta

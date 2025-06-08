@@ -125,7 +125,7 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
 
 #### 绝对单位:
 
-    px: 分辨率无关像素（1/96英寸）
+    px: 设备无关像素（1/96英寸）
     cm: 厘米
     mm: 毫米
     in: 英寸
