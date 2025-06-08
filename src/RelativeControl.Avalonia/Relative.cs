@@ -1,44 +1,52 @@
-﻿using Avalonia;
+﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
+using Avalonia.Data;
 using Avalonia.Layout;
+using Avalonia.Markup.Xaml;
+using Avalonia.VisualTree;
 
 namespace RelativeControl.Avalonia;
 
 public class Relative : AvaloniaObject {
-    public static readonly AttachedProperty<RelativeLength> WidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("Width");
+    public static readonly AttachedProperty<IRelative<double>> WidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<double>>("Width", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> HeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("Height", RelativeLength.Empty);
+    public static readonly AttachedProperty<IRelative<double>> HeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<double>>("Height", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MinWidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MinWidth", RelativeLength.Empty);
+    public static readonly AttachedProperty<IRelative<double>> MinWidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<double>>("MinWidth", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MinHeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MinHeight", RelativeLength.Empty);
+    public static readonly AttachedProperty<IRelative<double>> MinHeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<double>>("MinHeight", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MaxWidthProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MaxWidth", RelativeLength.Empty);
+    public static readonly AttachedProperty<IRelative<double>> MaxWidthProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<double>>("MaxWidth", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeLength> MaxHeightProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeLength>("MaxHeight", RelativeLength.Empty);
+    public static readonly AttachedProperty<IRelative<double>> MaxHeightProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<double>>("MaxHeight", RelativeLength.Empty);
 
-    public static readonly AttachedProperty<RelativeThickness> BorderThicknessProperty =
-        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeThickness>(
+    public static readonly AttachedProperty<IRelative<Thickness>> BorderThicknessProperty =
+        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, IRelative<Thickness>>(
             "BorderThickness",
             RelativeThickness.Empty);
 
-    public static readonly AttachedProperty<RelativeCornerRadius> CornerRadiusProperty =
-        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, RelativeCornerRadius>(
+    public static readonly AttachedProperty<IRelative<CornerRadius>> CornerRadiusProperty =
+        AvaloniaProperty.RegisterAttached<Relative, TemplatedControl, IRelative<CornerRadius>>(
             "CornerRadius",
             RelativeCornerRadius.Empty);
 
-    public static readonly AttachedProperty<RelativeThickness> MarginProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeThickness>("Margin", RelativeThickness.Empty);
+    public static readonly AttachedProperty<IRelative<Thickness>> MarginProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<Thickness>>(
+            "Margin",
+            RelativeThickness.Empty);
 
-    public static readonly AttachedProperty<RelativeThickness> PaddingProperty =
-        AvaloniaProperty.RegisterAttached<Relative, Layoutable, RelativeThickness>("Padding", RelativeThickness.Empty);
+    public static readonly AttachedProperty<IRelative<Thickness>> PaddingProperty =
+        AvaloniaProperty.RegisterAttached<Relative, Layoutable, IRelative<Thickness>>(
+            "Padding",
+            RelativeThickness.Empty);
 
 
     static Relative() {
@@ -90,102 +98,245 @@ public class Relative : AvaloniaObject {
                                                                     layoutable,
                                                                     args,
                                                                     Decorator.PaddingProperty));
-        CornerRadiusProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) => {
-            if (args.NewValue is RelativeCornerRadius ncr) {
-                layoutable.SetValue(Border.CornerRadiusProperty, ncr.Absolute());
-                ncr.OnRelativeCornerRadiusChanged += cornerRadius =>
-                    layoutable.SetValue(Border.CornerRadiusProperty, cornerRadius);
-            } else {
-                layoutable.SetValue(Border.CornerRadiusProperty, default);
-            }
-        });
+        CornerRadiusProperty.Changed.AddClassHandler<Layoutable>((layoutable, args) =>
+                                                                     RelativeCornerRadiusHandler(
+                                                                         layoutable,
+                                                                         args,
+                                                                         Border.CornerRadiusProperty));
     }
 
     private static void RelativeLengthHandler<T>(
         T element,
         AvaloniaPropertyChangedEventArgs args,
         AvaloniaProperty property,
-        double defaultValue = double.NaN) where T : AvaloniaObject {
-        if (args.NewValue is RelativeLength nl) {
+        double? defaultValue = null) where T : AvaloniaObject {
+        if (args.NewValue is RelativeLengthBase nl) {
             element.SetValue(property, nl.Absolute());
-            nl.OnRelativeLengthChanged += (_, newActualPixel) => element.SetValue(property, newActualPixel);
+            var reference = new WeakReference<T>(element);
+
+            void Update(IRelative<double>? sender, RelativeChangedEventArgs<double> _) {
+                if (reference.TryGetTarget(out T? target))
+                    target.SetValue(property, sender?.Absolute());
+            }
+
+            nl.RelativeChanged += Update;
         } else {
-            element.SetValue(property, defaultValue);
+            element.SetValue(property, defaultValue ?? RelativeLength.Empty.Absolute());
         }
     }
 
     private static void RelativeThicknessHandler<T>(
         T element,
         AvaloniaPropertyChangedEventArgs args,
-        AvaloniaProperty property) where T : AvaloniaObject {
+        AvaloniaProperty property,
+        Thickness? defaultValue = null) where T : AvaloniaObject {
         if (args.NewValue is RelativeThickness nt) {
             element.SetValue(property, nt.Absolute());
-            nt.OnRelativeThicknessChanged += thickness => element.SetValue(property, thickness);
+            var reference = new WeakReference<T>(element);
+
+            void Update(IRelative<Thickness>? sender, RelativeChangedEventArgs<Thickness> _) {
+                if (reference.TryGetTarget(out T? target))
+                    target.SetValue(property, sender?.Absolute());
+            }
+
+            nt.RelativeChanged += Update;
         } else {
-            element.SetValue(property, RelativeThickness.Empty);
+            element.SetValue(property, defaultValue ?? RelativeThickness.Empty.Absolute());
         }
     }
 
-    public static void SetWidth(Visual visual, string s) {
-        visual.SetValue(WidthProperty, new RelativeLength(s, visual));
+
+    private static void RelativeCornerRadiusHandler<T>(
+        T element,
+        AvaloniaPropertyChangedEventArgs args,
+        AvaloniaProperty property,
+        CornerRadius? defaultValue = null) where T : AvaloniaObject {
+        if (args.NewValue is RelativeCornerRadius nt) {
+            element.SetValue(property, nt.Absolute());
+            var reference = new WeakReference<T>(element);
+
+            void Update(IRelative<CornerRadius>? sender, RelativeChangedEventArgs<CornerRadius> _) {
+                if (reference.TryGetTarget(out T? target))
+                    target.SetValue(property, sender?.Absolute());
+            }
+
+            nt.RelativeChanged += Update;
+        } else {
+            element.SetValue(property, defaultValue ?? RelativeCornerRadius.Empty.Absolute());
+        }
     }
 
-    public static RelativeLength GetWidth(Visual visual) { return visual.GetValue(WidthProperty); }
-
-    public static void SetHeight(Visual visual, string s) {
-        visual.SetValue(HeightProperty, new RelativeLength(s, visual));
+    public static void SetWidth(Visual visual, object length) {
+        RelativeLengthBase value = length switch {
+            string s             => RelativeLengthBase.Parse(s, visual),
+            RelativeLengthBase l => l,
+            _                    => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+        };
+        visual.SetValue(WidthProperty, value);
     }
 
-    public static RelativeLength GetHeight(Visual visual) { return visual.GetValue(HeightProperty); }
+    public static IRelative<double> GetWidth(Visual visual) { return visual.GetValue(WidthProperty); }
 
-    public static void SetMinWidth(Visual visual, string s) {
-        visual.SetValue(MinWidthProperty, new RelativeLength(s, visual));
+
+    public static void SetHeight(Visual visual, object length) {
+        RelativeLengthBase value = length switch {
+            string s             => RelativeLengthBase.Parse(s, visual),
+            RelativeLengthBase l => l,
+            _                    => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+        };
+        visual.SetValue(HeightProperty, value);
     }
 
-    public static RelativeLength GetMinWidth(Visual visual) { return visual.GetValue(MinWidthProperty); }
+    public static IRelative<double> GetHeight(Visual visual) { return visual.GetValue(HeightProperty); }
 
-    public static void SetMinHeight(Visual visual, string s) {
-        visual.SetValue(MinHeightProperty, new RelativeLength(s, visual));
+    public static void SetMinWidth(Visual visual, object length) {
+        visual.SetValue(
+            MinWidthProperty,
+            length switch {
+                string s             => RelativeLengthBase.Parse(s, visual),
+                IRelative<double> rd => rd,
+                _                    => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
     }
 
-    public static RelativeLength GetMinHeight(Visual visual) { return visual.GetValue(MinHeightProperty); }
+    public static IRelative<double> GetMinWidth(Visual visual) { return visual.GetValue(MinWidthProperty); }
 
-    public static void SetMaxWidth(Visual visual, string s) {
-        visual.SetValue(MaxWidthProperty, new RelativeLength(s, visual));
+    public static void SetMinHeight(Visual visual, object length) {
+        visual.SetValue(
+            MinHeightProperty,
+            length switch {
+                string s            => RelativeLengthBase.Parse(s, visual),
+                IRelative<double> l => l,
+                _                   => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
     }
 
-    public static RelativeLength GetMaxWidth(Visual visual) { return visual.GetValue(MaxWidthProperty); }
+    public static IRelative<double> GetMinHeight(Visual visual) { return visual.GetValue(MinHeightProperty); }
 
-    public static void SetMaxHeight(Visual visual, string s) {
-        visual.SetValue(MaxHeightProperty, new RelativeLength(s, visual));
+    public static void SetMaxWidth(Visual visual, object length) {
+        visual.SetValue(
+            MaxWidthProperty,
+            length switch {
+                string s            => RelativeLengthBase.Parse(s, visual),
+                IRelative<double> l => l,
+                _                   => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
     }
 
-    public static RelativeLength GetMaxHeight(Visual visual) { return visual.GetValue(MaxHeightProperty); }
+    public static IRelative<double> GetMaxWidth(Visual visual) { return visual.GetValue(MaxWidthProperty); }
 
-    public static void SetBorderThickness(Visual visual, string s) {
-        visual.SetValue(BorderThicknessProperty, RelativeThickness.Parse(s, visual));
+    public static void SetMaxHeight(Visual visual, object length) {
+        visual.SetValue(
+            MaxHeightProperty,
+            length switch {
+                string s            => RelativeLengthBase.Parse(s, visual),
+                IRelative<double> l => l,
+                _                   => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
     }
 
-    public static RelativeThickness GetBorderThickness(Visual visual) {
+    public static IRelative<double> GetMaxHeight(Visual visual) { return visual.GetValue(MaxHeightProperty); }
+
+    public static void SetBorderThickness(Visual visual, object length) {
+        visual.SetValue(
+            BorderThicknessProperty,
+            length switch {
+                string s               => RelativeThickness.Parse(s, visual),
+                IRelative<Thickness> l => l,
+                _                      => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
+    }
+
+    public static IRelative<Thickness> GetBorderThickness(Visual visual) {
         return visual.GetValue(BorderThicknessProperty);
     }
 
-    public static void SetCornerRadius(Visual visual, string s) {
-        visual.SetValue(CornerRadiusProperty, RelativeCornerRadius.Parse(s, visual));
+    public static void SetCornerRadius(Visual visual, object length) {
+        visual.SetValue(
+            CornerRadiusProperty,
+            length switch {
+                string s                  => RelativeCornerRadius.Parse(s, visual),
+                IRelative<CornerRadius> l => l,
+                _                         => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
     }
 
-    public static RelativeCornerRadius GetCornerRadius(Visual visual) { return visual.GetValue(CornerRadiusProperty); }
-
-
-    public static void SetMargin(Visual visual, string s) {
-        visual.SetValue(MarginProperty, RelativeThickness.Parse(s, visual));
+    public static void SetCornerRadius(Visual visual, RelativeLengthBase length) {
+        visual.SetValue(CornerRadiusProperty, length);
     }
 
-    public static RelativeThickness GetMargin(Visual visual) { return visual.GetValue(MarginProperty); }
-
-    public static void SetPadding(Visual visual, string s) {
-        visual.SetValue(PaddingProperty, RelativeThickness.Parse(s, visual));
+    public static IRelative<CornerRadius> GetCornerRadius(Visual visual) {
+        return visual.GetValue(CornerRadiusProperty);
     }
 
-    public static RelativeThickness GetPadding(Visual visual) { return visual.GetValue(PaddingProperty); }
+
+    public static void SetMargin(Visual visual, object length) {
+        visual.SetValue(
+            MarginProperty,
+            length switch {
+                string s               => RelativeThickness.Parse(s, visual),
+                IRelative<Thickness> l => l,
+                _                      => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
+    }
+
+    public static IRelative<Thickness> GetMargin(Visual visual) { return visual.GetValue(MarginProperty); }
+
+    public static void SetPadding(Visual visual, object length) {
+        visual.SetValue(
+            PaddingProperty,
+            length switch {
+                string s               => RelativeThickness.Parse(s, visual),
+                IRelative<Thickness> l => l,
+                _                      => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
+            });
+    }
+
+    public static IRelative<Thickness> GetPadding(Visual visual) { return visual.GetValue(PaddingProperty); }
+
+
+    public static void SetOneTimeWidth(Visual visual, string s) {
+        visual.AttachedToVisualTree += Update;
+        if (visual.IsAttachedToVisualTree())
+            Update();
+        return;
+
+        void Update(object? _ = null, VisualTreeAttachmentEventArgs? __ = null) {
+            visual.SetValue(Layoutable.WidthProperty, RelativeCalc.Calc(s, visual));
+        }
+    }
+
+    public static void SetOneTimeHeight(Visual visual, string s) {
+        visual.AttachedToVisualTree += Update;
+        if (visual.IsAttachedToVisualTree())
+            Update();
+        return;
+
+        void Update(object? _ = null, VisualTreeAttachmentEventArgs? __ = null) {
+            visual.SetValue(Layoutable.HeightProperty, RelativeCalc.Calc(s, visual));
+        }
+    }
+}
+
+public class RelativeBinding(BindingBase sourceValue, string value) : MarkupExtension {
+    public readonly RelativeScale Scale = RelativeScale.Parse(value);
+    public readonly BindingBase SourceValue = sourceValue;
+
+    public override object ProvideValue(IServiceProvider serviceProvider) {
+        SourceValue.Converter = new RelativeConverter();
+        SourceValue.ConverterParameter = Scale;
+        return SourceValue;
+    }
+}
+
+public class RelativeBindOneTime(BindingBase sourceValue, string value) : MarkupExtension {
+    public readonly RelativeScale Scale = RelativeScale.Parse(value);
+    public readonly BindingBase SourceValue = sourceValue;
+
+    public override object ProvideValue(IServiceProvider serviceProvider) {
+        SourceValue.Mode = BindingMode.OneTime;
+        SourceValue.Converter = new RelativeConverter();
+        SourceValue.ConverterParameter = Scale;
+        return SourceValue;
+    }
 }

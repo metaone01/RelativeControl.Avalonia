@@ -1,11 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <Version>0.2.1</Version>
+        <Version>1.0.0</Version>
         <Title>RelativeControl.Avalonia</Title>
         <Authors>metaone01</Authors>
-        <Description>Enable relative units for Avalonia controls</Description>
+        <Description>Provide some relative units and features for Avalonia.</Description>
         <RepositoryUrl>https://github.com/metaone01/RelativeControl.Avalonia</RepositoryUrl>
         <PackageProjectUrl>https://github.com/metaone01/RelativeControl.Avalonia</PackageProjectUrl>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -17,6 +17,7 @@
     </PropertyGroup>
     <ItemGroup>
         <None Include="../../README.md" Pack="true" PackagePath=""/>
+        <None Include="../../API References.md" Pack="true" PackagePath=""/>
     </ItemGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
@@ -24,6 +25,6 @@
     <ItemGroup>
         <PackageReference Include="Avalonia" Version="11.1.1"/>
         <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.0"/>
+        <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.1.1"/>
     </ItemGroup>
 </Project>

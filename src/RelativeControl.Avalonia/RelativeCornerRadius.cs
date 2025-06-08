@@ -6,54 +6,48 @@ namespace RelativeControl.Avalonia;
 /// <summary>
 ///     Represents the radii of a rectangle's corners.
 /// </summary>
-public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
-    public delegate void RelativeCornerRadiusChanged(CornerRadius newCornerRadius);
-
+public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<RelativeCornerRadius> {
     public static readonly RelativeCornerRadius Empty = new(RelativeLength.Empty);
 
     /// <summary>
     ///     Relative radius of the bottom left corner.
     /// </summary>
-    public readonly RelativeLength BottomLeft;
+    public readonly RelativeLengthBase BottomLeft;
 
     /// <summary>
     ///     Relative radius of the bottom right corner.
     /// </summary>
-    public readonly RelativeLength BottomRight;
+    public readonly RelativeLengthBase BottomRight;
 
     /// <summary>
     ///     Relative radius of the top left corner.
     /// </summary>
-    public readonly RelativeLength TopLeft;
+    public readonly RelativeLengthBase TopLeft;
 
     /// <summary>
     ///     Relative radius of the top right corner.
     /// </summary>
-    public readonly RelativeLength TopRight;
+    public readonly RelativeLengthBase TopRight;
 
-    public RelativeCornerRadius(RelativeLength uniformRadius) {
+    public RelativeCornerRadius(RelativeLengthBase uniformRadius) {
         TopLeft = TopRight = BottomLeft = BottomRight = uniformRadius;
         Register();
     }
 
-
-    public RelativeCornerRadius(RelativeLength top, RelativeLength bottom) {
-        TopLeft    = TopRight    = top;
-        BottomLeft = BottomRight = bottom;
-        Register();
-    }
-
     public RelativeCornerRadius(
-        RelativeLength topLeft,
-        RelativeLength topRight,
-        RelativeLength bottomRight,
-        RelativeLength bottomLeft) {
-        TopLeft     = topLeft;
-        TopRight    = topRight;
+        RelativeLengthBase topLeft,
+        RelativeLengthBase topRight,
+        RelativeLengthBase bottomRight,
+        RelativeLengthBase bottomLeft) {
+        TopLeft = topLeft;
+        TopRight = topRight;
         BottomRight = bottomRight;
-        BottomLeft  = bottomLeft;
+        BottomLeft = bottomLeft;
         Register();
     }
+
+    public CornerRadius ActualCornerRadius =>
+        new(TopLeft.ActualPixels, BottomLeft.ActualPixels, TopRight.ActualPixels, BottomRight.ActualPixels);
 
 
     /// <summary>
@@ -73,32 +67,93 @@ public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
                BottomLeft == other.BottomLeft;
     }
 
-    public event RelativeCornerRadiusChanged? OnRelativeCornerRadiusChanged;
+    public CornerRadius ActualValue => ActualCornerRadius;
+
+    public event RelativeChangedEventHandler<CornerRadius>? RelativeChanged;
 
     public CornerRadius Absolute() {
-        double topLeft = double.IsNaN(TopLeft.ActualPixels) ? 0 : TopLeft.ActualPixels;
-        double topRight = double.IsNaN(TopRight.ActualPixels) ? 0 : TopRight.ActualPixels;
-        double bottomRight = double.IsNaN(BottomRight.ActualPixels) ? 0 : BottomRight.ActualPixels;
-        double bottomLeft = double.IsNaN(BottomLeft.ActualPixels) ? 0 : BottomLeft.ActualPixels;
-        return new CornerRadius(topLeft, topRight, bottomRight, bottomLeft);
+        return new CornerRadius(TopLeft.Absolute(), TopRight.Absolute(), BottomRight.Absolute(), BottomLeft.Absolute());
     }
 
-    /// <summary>
-    ///     Set another target for this relative corner radius.
-    /// </summary>
-    /// <param name="target">The new target.</param>
-    public void SetTarget(Visual? target) {
-        TopLeft.SetTarget(target);
-        TopRight.SetTarget(target);
-        BottomRight.SetTarget(target);
-        BottomLeft.SetTarget(target);
+    public static RelativeCornerRadius operator +(RelativeCornerRadius left, RelativeCornerRadius right) {
+        return new RelativeCornerRadius(
+            left.TopLeft + right.TopLeft,
+            left.TopRight + right.TopRight,
+            left.BottomRight + right.BottomRight,
+            left.BottomLeft + right.BottomLeft);
     }
 
-    public void Register() {
-        TopLeft.OnRelativeLengthChanged     += (_, _) => { OnRelativeCornerRadiusChanged?.Invoke(Absolute()); };
-        TopRight.OnRelativeLengthChanged    += (_, _) => { OnRelativeCornerRadiusChanged?.Invoke(Absolute()); };
-        BottomRight.OnRelativeLengthChanged += (_, _) => { OnRelativeCornerRadiusChanged?.Invoke(Absolute()); };
-        BottomLeft.OnRelativeLengthChanged  += (_, _) => { OnRelativeCornerRadiusChanged?.Invoke(Absolute()); };
+    public static RelativeCornerRadius operator -(RelativeCornerRadius left, RelativeCornerRadius right) {
+        return new RelativeCornerRadius(
+            left.TopLeft - right.TopLeft,
+            left.TopRight - right.TopRight,
+            left.BottomRight - right.BottomRight,
+            left.BottomLeft - right.BottomLeft);
+    }
+
+    public static RelativeCornerRadius operator *(RelativeCornerRadius left, double scale) {
+        return new RelativeCornerRadius(
+            left.TopLeft * scale,
+            left.TopRight * scale,
+            left.BottomRight * scale,
+            left.BottomLeft * scale);
+    }
+
+    public static RelativeCornerRadius operator *(double scale, RelativeCornerRadius right) { return right * scale; }
+
+    public static RelativeCornerRadius operator /(RelativeCornerRadius left, double scale) {
+        return new RelativeCornerRadius(
+            left.TopLeft / scale,
+            left.TopRight / scale,
+            left.BottomRight / scale,
+            left.BottomLeft / scale);
+    }
+
+    private void Register() {
+        TopLeft.RelativeChanged += UpdateTopLeft;
+        TopRight.RelativeChanged += UpdateTopRight;
+        BottomRight.RelativeChanged += UpdateBottomRight;
+        BottomLeft.RelativeChanged += UpdateBottomLeft;
+    }
+
+    private void UpdateTopLeft(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<CornerRadius>(
+                new CornerRadius(
+                    args.OldValue,
+                    TopRight.ActualPixels,
+                    BottomRight.ActualPixels,
+                    BottomLeft.ActualPixels),
+                ActualCornerRadius));
+    }
+
+    private void UpdateTopRight(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<CornerRadius>(
+                new CornerRadius(
+                    TopLeft.ActualPixels,
+                    args.OldValue,
+                    BottomRight.ActualPixels,
+                    BottomLeft.ActualPixels),
+                ActualCornerRadius));
+    }
+
+    private void UpdateBottomRight(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<CornerRadius>(
+                new CornerRadius(TopLeft.ActualPixels, TopRight.ActualPixels, args.OldValue, BottomLeft.ActualPixels),
+                ActualCornerRadius));
+    }
+
+    private void UpdateBottomLeft(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<CornerRadius>(
+                new CornerRadius(TopLeft.ActualPixels, TopRight.ActualPixels, BottomRight.ActualPixels, args.OldValue),
+                ActualCornerRadius));
     }
 
     public override string ToString() { return $"{TopLeft} {TopRight} {BottomRight} {BottomLeft}"; }
@@ -106,13 +161,12 @@ public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
     public static RelativeCornerRadius Parse(string s, Visual? target = null) {
         string[] vals = s.Trim().Split(' ');
         return vals.Length switch {
-            1 => new RelativeCornerRadius(new RelativeLength(vals[0], target)),
-            2 => new RelativeCornerRadius(new RelativeLength(vals[0], target), new RelativeLength(vals[1], target)),
+            1 => new RelativeCornerRadius(RelativeLengthBase.Parse(vals[0], target)),
             4 => new RelativeCornerRadius(
-                new RelativeLength(vals[0], target),
-                new RelativeLength(vals[1], target),
-                new RelativeLength(vals[2], target),
-                new RelativeLength(vals[3], target)),
+                RelativeLengthBase.Parse(vals[0], target),
+                RelativeLengthBase.Parse(vals[1], target),
+                RelativeLengthBase.Parse(vals[2], target),
+                RelativeLengthBase.Parse(vals[3], target)),
             _ => throw new FormatException($"Invalid relative corner radius: '{s}'")
         };
     }
@@ -132,21 +186,20 @@ public class RelativeCornerRadius : IEquatable<RelativeCornerRadius> {
         return !left.Equals(right);
     }
 
-    public static RelativeCornerRadius operator *(RelativeCornerRadius left, double scaler) {
+    public static explicit operator RelativeCornerRadius(CornerRadius value) {
         return new RelativeCornerRadius(
-            left.TopLeft * scaler,
-            left.TopRight * scaler,
-            left.BottomRight * scaler,
-            left.BottomLeft * scaler);
+            (RelativeLength)value.TopLeft,
+            (RelativeLength)value.TopRight,
+            (RelativeLength)value.BottomRight,
+            (RelativeLength)value.BottomLeft);
     }
 
-    public static RelativeCornerRadius operator /(RelativeCornerRadius left, double scaler) {
-        return new RelativeCornerRadius(
-            left.TopLeft / scaler,
-            left.TopRight / scaler,
-            left.BottomRight / scaler,
-            left.BottomLeft / scaler);
-    }
+    public static explicit operator CornerRadius(RelativeCornerRadius value) { return value.ActualCornerRadius; }
 
-    public static implicit operator string(RelativeCornerRadius value) { return value.ToString(); }
+    ~RelativeCornerRadius() {
+        TopLeft.RelativeChanged -= UpdateTopLeft;
+        TopRight.RelativeChanged -= UpdateTopRight;
+        BottomRight.RelativeChanged -= UpdateBottomRight;
+        BottomLeft.RelativeChanged -= UpdateBottomLeft;
+    }
 }

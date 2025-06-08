@@ -9,34 +9,33 @@ namespace RelativeControl.Avalonia;
 /// <summary>
 ///     Defines a size.
 /// </summary>
-public class RelativeSize : IEquatable<RelativeSize> {
-    public delegate void RelativeSizeChanged(Size newSize);
-
+public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
     /// <summary>
     ///     A size representing infinity.
     /// </summary>
-    public static readonly RelativeSize Infinity = new(double.PositiveInfinity, double.PositiveInfinity);
+    public static readonly RelativeSize Infinity = new(
+        RelativeLength.PositiveInfinity,
+        RelativeLength.PositiveInfinity);
 
     public static readonly RelativeSize Empty = new(RelativeLength.Empty, RelativeLength.Empty);
 
     /// <summary>
     ///     The height.
     /// </summary>
-    public readonly RelativeLength Height;
+    public readonly RelativeLengthBase Height;
 
     /// <summary>
     ///     The width.
     /// </summary>
-    public readonly RelativeLength Width;
+    public readonly RelativeLengthBase Width;
 
     /// <summary>
     ///     Initializes a new instance of the <see cref="RelativeSize" /> structure.
     /// </summary>
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
-    /// <param name="target">The target control.</param>
-    public RelativeSize(RelativeLength width, RelativeLength height) {
-        Width  = width;
+    public RelativeSize(RelativeLengthBase width, RelativeLengthBase height) {
+        Width = width;
         Height = height;
         Register();
     }
@@ -45,7 +44,13 @@ public class RelativeSize : IEquatable<RelativeSize> {
     ///     Initializes a new instance of the <see cref="RelativeSize" /> structure.
     /// </summary>
     /// <param name="vector2">The vector to take values from.</param>
-    public RelativeSize(Vector2 vector2) : this(vector2.X, vector2.Y) { }
+    /// <param name="xUnit">The X unit.</param>
+    /// <param name="yUnit">The Y unit.</param>
+    public RelativeSize(Vector2 vector2, Units xUnit = Units.Pixel, Units yUnit = Units.Pixel) : this(
+        new RelativeLength(vector2.X, xUnit),
+        new RelativeLength(vector2.Y, yUnit)) { }
+
+    public Size ActualSize => new(Width.ActualPixels, Height.ActualPixels);
 
     /// <summary>
     ///     Gets the aspect ratio of the size.
@@ -59,30 +64,71 @@ public class RelativeSize : IEquatable<RelativeSize> {
     /// <returns>True if this size is equal to other; False otherwise.</returns>
     public bool Equals(RelativeSize? other) { return Width == other?.Width && Height == other.Height; }
 
-    public event RelativeSizeChanged? OnRelativeSizeChanged;
+    public Size ActualValue => ActualSize;
 
-    public void SetTarget(Visual? target) {
-        Width.SetTarget(target);
-        Height.SetTarget(target);
+    public event RelativeChangedEventHandler<Size>? RelativeChanged;
+
+    public Size Absolute() { return new Size(Width.Absolute(), Height.Absolute()); }
+
+    public static RelativeSize operator +(RelativeSize size, RelativeSize toAdd) {
+        return new RelativeSize(size.Width + toAdd.Width, size.Height + toAdd.Height);
+    }
+
+    public static RelativeSize operator -(RelativeSize size, RelativeSize toSubtract) {
+        return new RelativeSize(size.Width - toSubtract.Width, size.Height - toSubtract.Height);
+    }
+
+    /// <summary>
+    ///     Scales a size.
+    /// </summary>
+    /// <param name="size">The size</param>
+    /// <param name="scale">The scaling factor.</param>
+    /// <returns>The scaled size.</returns>
+    public static RelativeSize operator *(RelativeSize size, double scale) {
+        return new RelativeSize(size.Width * scale, size.Height * scale);
+    }
+
+    /// <summary>
+    ///     Scales a size.
+    /// </summary>
+    /// <param name="size">The size</param>
+    /// <param name="scale">The scaling factor.</param>
+    /// <returns>The scaled size.</returns>
+    public static RelativeSize operator *(double scale, RelativeSize size) { return size * scale; }
+
+    /// <summary>
+    ///     Scales a size.
+    /// </summary>
+    /// <param name="size">The size</param>
+    /// <param name="scale">The scaling factor.</param>
+    /// <returns>The scaled size.</returns>
+    public static RelativeSize operator /(RelativeSize size, double scale) {
+        return new RelativeSize(size.Width / scale, size.Height / scale);
     }
 
 
     private void Register() {
-        Width.OnRelativeLengthChanged  += (_, _) => OnRelativeSizeChanged?.Invoke(Absolute());
-        Height.OnRelativeLengthChanged += (_, _) => OnRelativeSizeChanged?.Invoke(Absolute());
+        Width.RelativeChanged += UpdateWidth;
+        Height.RelativeChanged += UpdateHeight;
     }
 
-    public Size Absolute() {
-        double width  = double.IsNaN(Width.ActualPixels) ? 0 : Width.ActualPixels;
-        double height = double.IsNaN(Height.ActualPixels) ? 0 : Height.ActualPixels;
-        return new Size(width, height);
+    private void UpdateWidth(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<Size>(new Size(args.OldValue, Height.ActualPixels), ActualSize));
+    }
+
+    private void UpdateHeight(IRelative<double>? _, RelativeChangedEventArgs<double> args) {
+        RelativeChanged?.Invoke(
+            this,
+            new RelativeChangedEventArgs<Size>(new Size(Width.ActualPixels, args.OldValue), ActualSize));
     }
 
     /// <summary>
     ///     Returns the string representation of the size.
     /// </summary>
     /// <returns>The string representation of the size.</returns>
-    public override string ToString() { return $"{Width}, {Height}"; }
+    public override string ToString() { return $"{Width},  {Height}"; }
 
 
     /// <summary>
@@ -92,8 +138,8 @@ public class RelativeSize : IEquatable<RelativeSize> {
     /// <returns>The constrained size.</returns>
     public RelativeSize Constrain(RelativeSize constraint) {
         return new RelativeSize(
-            RelativeLength.Min(Width, constraint.Width),
-            RelativeLength.Min(Height, constraint.Height));
+            RelativeLengthBase.Min(Width, constraint.Width),
+            RelativeLengthBase.Min(Height, constraint.Height));
     }
 
     /// <summary>
@@ -121,12 +167,13 @@ public class RelativeSize : IEquatable<RelativeSize> {
     ///     Parses a <see cref="Size" /> string.
     /// </summary>
     /// <param name="s">The string.</param>
+    /// <param name="visual">The target control.</param>
     /// <returns>The <see cref="Size" />.</returns>
-    public static RelativeSize Parse(string s) {
+    public static RelativeSize Parse(string s, Visual? visual) {
         string[] vars = s.Trim().Split(' ');
         if (vars.Length != 2)
             throw new FormatException($"Invalid relative size: {s}");
-        return new RelativeSize(new RelativeLength(vars[0]), new RelativeLength(vars[1]));
+        return new RelativeSize(RelativeLengthBase.Parse(vars[0], visual), RelativeLengthBase.Parse(vars[1], visual));
     }
 
     /// <summary>
@@ -134,8 +181,8 @@ public class RelativeSize : IEquatable<RelativeSize> {
     /// </summary>
     /// <param name="width">The width.</param>
     /// <param name="height">The height.</param>
-    public void Deconstruct(out RelativeLength width, out RelativeLength height) {
-        width  = Width;
+    public void Deconstruct(out RelativeLengthBase width, out RelativeLengthBase height) {
+        width = Width;
         height = Height;
     }
 
@@ -170,14 +217,6 @@ public class RelativeSize : IEquatable<RelativeSize> {
     /// <returns>True if the sizes are unequal; otherwise false.</returns>
     public static bool operator !=(RelativeSize left, RelativeSize right) { return !(left == right); }
 
-    public static RelativeSize operator +(RelativeSize size, RelativeSize toAdd) {
-        return new RelativeSize(size.Width + toAdd.Width, size.Height + toAdd.Height);
-    }
-
-    public static RelativeSize operator -(RelativeSize size, RelativeSize toSubtract) {
-        return new RelativeSize(size.Width - toSubtract.Width, size.Height - toSubtract.Height);
-    }
-
     /// <summary>
     ///     Scales a size.
     /// </summary>
@@ -194,27 +233,18 @@ public class RelativeSize : IEquatable<RelativeSize> {
     /// <param name="size">The size</param>
     /// <param name="scale">The scaling factor.</param>
     /// <returns>The scaled size.</returns>
-    public static RelativeSize operator *(RelativeSize size, double scale) {
-        return new RelativeSize(size.Width * scale, size.Height * scale);
-    }
-
-    /// <summary>
-    ///     Scales a size.
-    /// </summary>
-    /// <param name="size">The size</param>
-    /// <param name="scale">The scaling factor.</param>
-    /// <returns>The scaled size.</returns>
     public static RelativeSize operator /(RelativeSize size, Vector scale) {
         return new RelativeSize(size.Width / scale.X, size.Height / scale.Y);
     }
 
-    /// <summary>
-    ///     Scales a size.
-    /// </summary>
-    /// <param name="size">The size</param>
-    /// <param name="scale">The scaling factor.</param>
-    /// <returns>The scaled size.</returns>
-    public static RelativeSize operator /(RelativeSize size, double scale) {
-        return new RelativeSize(size.Width / scale, size.Height / scale);
+    public static explicit operator RelativeSize(Size size) {
+        return new RelativeSize((RelativeLength)size.Width, (RelativeLength)size.Height);
+    }
+
+    public static explicit operator Size(RelativeSize size) { return size.ActualSize; }
+
+    ~RelativeSize() {
+        Width.RelativeChanged -= UpdateWidth;
+        Height.RelativeChanged -= UpdateHeight;
     }
 }
