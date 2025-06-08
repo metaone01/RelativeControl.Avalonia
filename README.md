@@ -34,6 +34,9 @@ dotnet add package RelativeControl.Avalonia
 > 20% logical parent width + 10% logical parent height.
 
 > You can also add / subtract / multiply / divide the value at code behind.
+>
+> - Multiply() and Divide() will affect the instance and all its references.
+> - \* or / operation will create a light copy and will not affect the instance.
 
 > `Relative.SetOneTimeWidth` and `Relative.SetOneTimeHeight` will update only once when the control is attached to
 > visual tree.
