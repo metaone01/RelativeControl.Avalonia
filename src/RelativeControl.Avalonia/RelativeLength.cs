@@ -25,7 +25,7 @@ public delegate void RelativeChangedEventHandler<T>(IRelative<T>? sender, Relati
 /// <summary>
 ///     Addable and Subtractable.
 /// </summary>
-public interface IAddSub<in T> where T : allows ref struct {
+public interface IAddSub<in T> {
     void Add(T other);
     void Subtract(T other);
 }
@@ -33,12 +33,12 @@ public interface IAddSub<in T> where T : allows ref struct {
 /// <summary>
 ///     Multipliable and Dividable.
 /// </summary>
-public interface IMulDiv<in T> where T : allows ref struct {
+public interface IMulDiv<in T> {
     void Multiply(T other);
     void Divide(T other);
 }
 
-public interface ICopiable<out T> where T : allows ref struct {
+public interface ICopiable<out T> {
     T Copy();
     T LightCopy();
 }
