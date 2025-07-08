@@ -159,7 +159,7 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
     public override string ToString() { return $"{TopLeft} {TopRight} {BottomRight} {BottomLeft}"; }
 
     public static RelativeCornerRadius Parse(string s, Visual? target = null) {
-        string[] vals = s.Trim().Split(' ');
+        string[] vals = Splitters.Split(s, ',',' ');
         return vals.Length switch {
             1 => new RelativeCornerRadius(RelativeLengthBase.Parse(vals[0], target)),
             4 => new RelativeCornerRadius(
