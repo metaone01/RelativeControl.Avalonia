@@ -23,6 +23,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.RelativeControl.iOS", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.RelativeControl.Browser", "Demo.RelativeControl\Demo.RelativeControl.Browser\Demo.RelativeControl.Browser.csproj", "{C269224E-CFC8-40FE-969E-CD36AB2F31D7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.RelativeControl", "Test.RelativeControl\Test.RelativeControl.csproj", "{ACCCD38A-95FA-423C-B56E-CACA7C0AEF59}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FEA7395D-C139-4586-8822-457457163A16} = {FEA7395D-C139-4586-8822-457457163A16}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -57,6 +62,10 @@ Global
 		{C269224E-CFC8-40FE-969E-CD36AB2F31D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C269224E-CFC8-40FE-969E-CD36AB2F31D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C269224E-CFC8-40FE-969E-CD36AB2F31D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACCCD38A-95FA-423C-B56E-CACA7C0AEF59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACCCD38A-95FA-423C-B56E-CACA7C0AEF59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACCCD38A-95FA-423C-B56E-CACA7C0AEF59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACCCD38A-95FA-423C-B56E-CACA7C0AEF59}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BBD7DE1F-4E7D-44AC-8EF2-09ADA78DCC1F} = {9A5B88AA-507E-41F6-B04B-D70955C1D756}
@@ -65,5 +74,6 @@ Global
 		{D024C9A0-F054-4AD0-8B28-CD63CA5C2708} = {3824750C-0D79-41F1-9334-3835D493A719}
 		{30EA88A3-A559-445E-BE82-821A50F97E44} = {3824750C-0D79-41F1-9334-3835D493A719}
 		{C269224E-CFC8-40FE-969E-CD36AB2F31D7} = {3824750C-0D79-41F1-9334-3835D493A719}
+		{ACCCD38A-95FA-423C-B56E-CACA7C0AEF59} = {9A5B88AA-507E-41F6-B04B-D70955C1D756}
 	EndGlobalSection
 EndGlobal

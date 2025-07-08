@@ -170,10 +170,10 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
     /// <param name="visual">The target control.</param>
     /// <returns>The <see cref="Size" />.</returns>
     public static RelativeSize Parse(string s, Visual? visual) {
-        string[] vars = s.Trim().Split(' ');
-        if (vars.Length != 2)
+        string[] vals = Splitters.Split(s, ',', ' ');
+        if (vals.Length != 2)
             throw new FormatException($"Invalid relative size: {s}");
-        return new RelativeSize(RelativeLengthBase.Parse(vars[0], visual), RelativeLengthBase.Parse(vars[1], visual));
+        return new RelativeSize(RelativeLengthBase.Parse(vals[0], visual), RelativeLengthBase.Parse(vals[1], visual));
     }
 
     /// <summary>

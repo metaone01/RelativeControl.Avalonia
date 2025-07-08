@@ -189,7 +189,7 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
     /// <param name="target">The relative target.</param>
     /// <returns>The <see cref="RelativeThickness" />.</returns>
     public static RelativeThickness Parse(string s, Visual? target = null) {
-        string[] vals = s.Trim().Split(' ');
+        string[] vals = Splitters.Split(s, ',',' ');
         return vals.Length switch {
             1 => new RelativeThickness(RelativeLengthBase.Parse(vals[0], target)),
             2 => new RelativeThickness(
