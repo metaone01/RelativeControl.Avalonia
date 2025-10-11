@@ -47,13 +47,13 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
     }
 
     public CornerRadius ActualCornerRadius =>
-        new(TopLeft.ActualPixels, BottomLeft.ActualPixels, TopRight.ActualPixels, BottomRight.ActualPixels);
+        new(TopLeft.ActualPixels, TopRight.ActualPixels, BottomRight.ActualPixels, BottomLeft.ActualPixels);
 
 
     /// <summary>
     ///     Gets a value indicating whether all relative corner radii are equal.
     /// </summary>
-    public bool IsUniform => TopLeft.Equals(TopRight) && BottomLeft.Equals(BottomRight) && TopRight.Equals(BottomRight);
+    public bool IsUniform => TopLeft.Equals(TopRight) && TopRight.Equals(BottomRight) && BottomLeft.Equals(BottomRight);
 
     /// <summary>
     ///     Returns a boolean indicating whether the corner radius is equal to the other given relative corner radius.
@@ -159,7 +159,7 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
     public override string ToString() { return $"{TopLeft} {TopRight} {BottomRight} {BottomLeft}"; }
 
     public static RelativeCornerRadius Parse(string s, Visual? target = null) {
-        string[] vals = Splitters.Split(s, ',',' ');
+        string[] vals = Splitters.Split(s, ',', ' ');
         return vals.Length switch {
             1 => new RelativeCornerRadius(RelativeLengthBase.Parse(vals[0], target)),
             4 => new RelativeCornerRadius(

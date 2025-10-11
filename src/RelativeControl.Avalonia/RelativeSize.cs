@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Globalization;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Avalonia;
@@ -169,7 +171,7 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
     /// <param name="s">The string.</param>
     /// <param name="visual">The target control.</param>
     /// <returns>The <see cref="Size" />.</returns>
-    public static RelativeSize Parse(string s, Visual? visual) {
+    public static RelativeSize Parse(string s, Visual? visual = null) {
         string[] vals = Splitters.Split(s, ',', ' ');
         if (vals.Length != 2)
             throw new FormatException($"Invalid relative size: {s}");
@@ -246,5 +248,19 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
     ~RelativeSize() {
         Width.RelativeChanged -= UpdateWidth;
         Height.RelativeChanged -= UpdateHeight;
+    }
+}
+
+public class RelativeSizeTypeConverter : TypeConverter {
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) {
+        return sourceType == typeof(string) || sourceType == typeof(Size) || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value) {
+        return value switch {
+            string s  => RelativeSize.Parse(s),
+            Size size => (RelativeSize)size,
+            _         => throw new InvalidOperationException($"Invalid relative thickness type: '{value.GetType()}'")
+        };
     }
 }
