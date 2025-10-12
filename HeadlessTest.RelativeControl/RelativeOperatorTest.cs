@@ -163,8 +163,8 @@ public class RelativeOperatorSourceUnchangedTest {
 
     [Fact]
     public void Relative_Operator_Accessibility() {
-        RelativeLength length = RelativeLength.Empty;
-        RelativeLengthMerge merge = RelativeLengthMerge.Empty;
+        var length = RelativeLength.Empty;
+        var merge = RelativeLengthMerge.Empty;
         SingleRelativeLength single = length;
         RelativeLengthBase base1 = length;
         RelativeLengthCollection collection = merge;

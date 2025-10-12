@@ -469,6 +469,7 @@ public class RelativeMultiValueChangedTest {
                 border.Height * 0.5 + border.Width * 0.1),
             button.BorderThickness);
     }
+
     [AvaloniaFact]
     public void Test_Relative_SetOneTimeWidth() {
         Button button = new();
@@ -479,8 +480,8 @@ public class RelativeMultiValueChangedTest {
         Assert.StrictEqual(0.5 * border.Width, button.Width);
         border.Width = 800;
         Assert.StrictEqual(0.5 * 1440, button.Width);
-        
     }
+
     [AvaloniaFact]
     public void Test_Relative_SetOneTimeHeight() {
         Button button = new();
