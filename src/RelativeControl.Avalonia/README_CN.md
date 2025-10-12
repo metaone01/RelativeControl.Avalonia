@@ -2,11 +2,11 @@
 
 本项目为[Avalonia](https://github.com/AvaloniaUI/Avalonia)提供了部分相对单位和功能
 
-[English](README.md)
+[English](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/src/RelativeControl.Avalonia/README.md)
 
-[在demo中查看用例](./Demo.RelativeControl/Demo.RelativeControl/MainWindow.axaml)
+[在demo中查看用例](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/RelativeControlView.axaml)
 
-[更多信息](./API%20References.md)
+[更多信息](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/src/RelativeControl.Avalonia/API%20References.md)
 
 ## 开始使用
 
@@ -15,7 +15,6 @@
 ```bash
 dotnet add package RelativeControl.Avalonia
 ```
-
 
 ### 设置值为 `double` 属性的相对值:
 
@@ -34,7 +33,7 @@ dotnet add package RelativeControl.Avalonia
 
 
 > 在code behind中，除了加减，还可以对相对单位进行乘除运算。
-> 
+>
 > - Multiply()和Divide()会改变其自身的倍率，同时影响所有对它的引用。
 > - \* 和 / 运算会生成一个轻量级副本，不会影响原实例。
 
@@ -75,7 +74,7 @@ dotnet add package RelativeControl.Avalonia
 > 这会设定此`Control`的值为：
 >
 > Horizontal(Left,Right) = 1倍字宽,
-> 
+>
 > Vertical(Top,Bottom) = 2倍字宽 - 5像素
 
 其它使用`RelativeThickness`的属性:
@@ -166,6 +165,7 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
 ### 1.0.0-alpha
 
 - RelativeBinding
+
 > 支持相对属性绑定 *[如何绑定自定义属性？](#bind-any-property)*
 
 ### 1.0.0-beta

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <Nullable>enable</Nullable>
-        <Version>1.0.2</Version>
+        <Version>1.2.1</Version>
         <Title>RelativeControl.Avalonia</Title>
         <Authors>metaone01</Authors>
         <Description>Provide some relative units and features for Avalonia.</Description>
@@ -15,10 +15,11 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFrameworks>net9.0;net8.0</TargetFrameworks>
     </PropertyGroup>
+
     <ItemGroup>
-        <None Include="../../README.md" Pack="true" PackagePath=""/>
-        <None Include="../../API References.md" Pack="true" PackagePath=""/>
+        <None Include="README.md" Pack="true" PackagePath=""/>
     </ItemGroup>
+
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>

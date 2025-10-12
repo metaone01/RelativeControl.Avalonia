@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Globalization;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
@@ -43,6 +46,7 @@ public interface ICopiable<out T> {
     T LightCopy();
 }
 
+[TypeConverter(typeof(RelativeTypeConverter))]
 public interface IRelative<T> {
     /// <summary>
     ///     This property returns the true absolute value for calculation.
@@ -72,6 +76,7 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
 
     public virtual double Absolute() { return double.Max(ActualPixels, 0); }
     public abstract event RelativeChangedEventHandler<double>? RelativeChanged;
+    public abstract void SetVisualAnchor(Visual? anchor);
 
     protected abstract void InvokeIfChanged(double oldActualPixels, double newActualPixels);
 
@@ -93,16 +98,33 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
         return left.ActualPixels > right.ActualPixels ? left : right;
     }
 
-    public static RelativeLengthBase Parse(string s, Visual? visual = null) {
-        var lengths = new List<RelativeLength>(ParseSingle(s, visual));
-        return lengths.Count switch {
+    [Pure]
+    public static RelativeLengthBase Parse(string s, AvaloniaObject? target, Visual? visualAnchor = null) {
+        RelativeLengthBase[] lengths = ParseSingle(s, target,visualAnchor).ToArray<RelativeLengthBase>();
+        return lengths.Length switch {
             0 => RelativeLength.Empty,
             1 => lengths[0],
             _ => new RelativeLengthMerge(lengths)
         };
     }
 
-    private static IEnumerable<RelativeLength> ParseSingle(string s, Visual? visual = null) {
+    [Pure]
+    public static RelativeLengthBase[] Parse(string[] s, AvaloniaObject? target) {
+        return [
+            ..s.Select(single => ParseSingle(single, target).ToArray<RelativeLengthBase>())
+               .Select(lengths => lengths.Length switch {
+                   0 => RelativeLength.Empty,
+                   1 => lengths[0],
+                   _ => new RelativeLengthMerge(lengths)
+               })
+        ];
+    }
+
+    [Pure]
+    private static IEnumerable<RelativeLength> ParseSingle(
+        string s,
+        AvaloniaObject? target = null,
+        Visual? visualAnchor = null) {
         s = s.Trim();
         if (s.Length == 0)
             yield break;
@@ -111,7 +133,7 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
         for (int i = 1; i < s.Length; i++) {
             if (s[i] is not ('+' or '-'))
                 continue;
-            RelativeLength length = RelativeLength.Parse(s[begin..i], visual);
+            RelativeLength length = RelativeLength.Parse(s[begin..i], target, visualAnchor);
             if (!isPositive)
                 length.Multiply(-1);
             yield return length;
@@ -119,7 +141,7 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
             begin = i + 1;
         }
 
-        yield return RelativeLength.Parse(s[begin..], visual);
+        yield return RelativeLength.Parse(s[begin..], target, visualAnchor);
     }
 
     public static RelativeLengthBase operator +(RelativeLengthBase left, RelativeLengthBase right) {
@@ -175,36 +197,65 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
     public static bool operator >(RelativeLengthBase a, RelativeLength b) { return a.ActualPixels > b.ActualPixels; }
 }
 
-public abstract class SingleRelativeLength : RelativeLengthBase, IMulDiv<RelativeScale> {
-    public virtual double Value { [Pure] get; protected set; }
-    public virtual Units Unit { [Pure] get; protected init; }
+public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visualAnchor = null, Visual? source = null)
+    : RelativeLengthBase, IMulDiv<RelativeScale> {
+    protected readonly WeakReference<AvaloniaObject>? _target =
+        target is null ? null : new WeakReference<AvaloniaObject>(target);
 
-    protected internal virtual WeakReference<Visual>? Source { [Pure] get; protected set; }
+    protected readonly WeakReference<Visual?> _visualAnchor =
+        new(visualAnchor ?? (target as Visual));
 
-    protected internal virtual WeakReference<Visual>? Target { [Pure] get; protected init; }
+    protected WeakReference<Visual>? _source = source is null ? null : new WeakReference<Visual>(source);
+
+    public virtual double Value {
+        [Pure]
+        get;
+        protected set;
+    }
+
+    public virtual Units Unit {
+        [Pure]
+        get;
+        protected init;
+    }
+
+    [Pure]
+    public virtual AvaloniaObject? Target {
+        get {
+            if (_target is null)
+                return null;
+            _target.TryGetTarget(out AvaloniaObject? target);
+            return target;
+        }
+    }
+
+    [Pure]
+    public virtual Visual? Source {
+        get {
+            if (_source is null)
+                return null;
+            _source.TryGetTarget(out Visual? source);
+            return source;
+        }
+    }
+
+    [Pure]
+    public virtual Visual? VisualAnchor {
+        get {
+            _visualAnchor.TryGetTarget(out Visual? visualAnchor);
+            return visualAnchor;
+        }
+    }
+
 
     public virtual void Multiply(RelativeScale other) { Value *= other.Scale; }
 
     public virtual void Divide(RelativeScale other) { Value /= other.Scale; }
 
-    [Pure]
-    public virtual Visual? GetTarget() {
-        if (Target is null)
-            return null;
-        Target.TryGetTarget(out Visual? target);
-        return target;
-    }
-
-    [Pure]
-    public virtual Visual? GetSource() {
-        if (Source is null)
-            return null;
-        Source.TryGetTarget(out Visual? source);
-        return source;
-    }
-
     public abstract override SingleRelativeLength Copy();
     public abstract override LightSingleRelativeLength LightCopy();
+
+    public override void SetVisualAnchor(Visual? anchor) { _visualAnchor.SetTarget(anchor); }
 
     [Pure]
     public static SingleRelativeLength Min(SingleRelativeLength left, SingleRelativeLength right) {
@@ -224,12 +275,13 @@ public abstract class SingleRelativeLength : RelativeLengthBase, IMulDiv<Relativ
         return left.ActualPixels > right.ActualPixels ? left : right;
     }
 
-    [Pure] public override string ToString() { return $"{Value}{Converters.UnitToString(Unit)}"; }
+    [Pure]
+    public override string ToString() { return $"{Value}{Converters.UnitToString(Unit)}"; }
 
     [Pure]
     public static RelativeLengthBase operator +(SingleRelativeLength left, SingleRelativeLength right) {
-        if (left.Unit.Equals(right.Unit) && left.GetTarget() == right.GetTarget())
-            return new RelativeLength(left.Value + right.Value, left.Unit, left.GetTarget());
+        if (left.Unit.Equals(right.Unit) && ReferenceEquals(left.Target, right.Target))
+            return new RelativeLength(left.Value + right.Value, left.Unit, left.Target);
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
             return new RelativeLength(left.ActualPixels + right.ActualPixels);
         return new RelativeLengthMerge(left, right);
@@ -237,8 +289,8 @@ public abstract class SingleRelativeLength : RelativeLengthBase, IMulDiv<Relativ
 
     [Pure]
     public static RelativeLengthBase operator -(SingleRelativeLength left, SingleRelativeLength right) {
-        if (left.Unit.Equals(right.Unit) && left.GetTarget() == right.GetTarget())
-            return new RelativeLength(left.Value - right.Value, left.Unit, left.GetTarget());
+        if (left.Unit.Equals(right.Unit) && ReferenceEquals(left.Target, right.Target))
+            return new RelativeLength(left.Value - right.Value, left.Unit, left.Target);
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
             return new RelativeLength(left.ActualPixels - right.ActualPixels);
         return new RelativeLengthMerge(left, right * -1);
@@ -267,8 +319,17 @@ public abstract class SingleRelativeLength : RelativeLengthBase, IMulDiv<Relativ
 public abstract class RelativeLengthCollection : RelativeLengthBase,
                                                  IAddSub<RelativeLengthBase>,
                                                  IMulDiv<RelativeScale> {
-    public virtual List<RelativeLengthBase> Children { [Pure] get; } = [];
-    public virtual double Scale { [Pure] get; protected set; } = 1D;
+    public virtual List<RelativeLengthBase> Children {
+        [Pure]
+        get;
+    } = [];
+
+    public virtual double Scale {
+        [Pure]
+        get;
+        protected set;
+    } = 1D;
+
     public virtual void Add(RelativeLengthBase elements) { Add([elements]); }
     public virtual void Subtract(RelativeLengthBase other) { Add(other * -1); }
 
@@ -282,6 +343,12 @@ public abstract class RelativeLengthCollection : RelativeLengthBase,
         double old = ActualPixels;
         Scale /= other.Scale;
         InvokeIfChanged(old, ActualPixels);
+    }
+
+
+    public override void SetVisualAnchor(Visual? anchor) {
+        foreach (RelativeLengthBase relative in Children)
+            relative.SetVisualAnchor(anchor);
     }
 
     public abstract override RelativeLengthCollection Copy();
@@ -361,10 +428,14 @@ public sealed class RelativeLengthMerge : RelativeLengthCollection {
     public RelativeLengthMerge(ICollection<RelativeLengthBase> lengths) { AddRange(lengths); }
 
     public RelativeLengthMerge(IEnumerable<RelativeLengthBase> lengths) { AddRange(lengths); }
-    [Pure] public override double ActualPixels => _actualPixels * Scale;
+
+    [Pure]
+    public override double ActualPixels => _actualPixels * Scale;
 
     public override RelativeLengthMerge Copy() { return new RelativeLengthMerge(Children); }
-    [Pure] public override RelativeLengthMerge LightCopy() { return new RelativeLengthMerge(this); }
+
+    [Pure]
+    public override RelativeLengthMerge LightCopy() { return new RelativeLengthMerge(this); }
 
     public override event RelativeChangedEventHandler<double>? RelativeChanged;
 
@@ -451,11 +522,12 @@ public sealed class RelativeLengthMerge : RelativeLengthCollection {
         return lightCopy;
     }
 
-    public new static RelativeLengthMerge Parse(string s, Visual? visual = null) {
+    [Pure]
+    public static RelativeLengthMerge Parse(string s, AvaloniaObject? visual = null) {
         return new RelativeLengthMerge(ParseSingle(s, visual));
     }
 
-    private static IEnumerable<RelativeLength> ParseSingle(string s, Visual? visual = null) {
+    private static IEnumerable<RelativeLength> ParseSingle(string s, AvaloniaObject? visual = null) {
         s = s.Trim();
         if (s.Length == 0)
             yield break;
@@ -482,7 +554,7 @@ public sealed class RelativeLengthMerge : RelativeLengthCollection {
 }
 
 public sealed class RelativeLength : SingleRelativeLength {
-    public static readonly RelativeLength Empty = new(0D);
+    public static readonly RelativeLength Empty = new(-1D);
     public static readonly RelativeLength PositiveInfinity = new(double.PositiveInfinity);
     public static readonly RelativeLength NegativeInfinity = new(double.NegativeInfinity);
 
@@ -494,21 +566,28 @@ public sealed class RelativeLength : SingleRelativeLength {
     /// </summary>
     /// <param name="value">Relative value.</param>
     /// <param name="unit">Relative unit.</param>
-    /// <param name="target">The target control.</param>
-    public RelativeLength(double value, Units unit = Units.Pixel, Visual? target = null) {
+    /// <param name="target">The target object.</param>
+    /// <param name="source">The source object for relative calculation.</param>
+    /// <param name="visualAnchor">The visual component that the <paramref name="target" /> is depend on.</param>
+    public RelativeLength(
+        double value,
+        Units unit = Units.Pixel,
+        AvaloniaObject? target = null,
+        Visual? visualAnchor = null,
+        Visual? source = null) : base(target, visualAnchor, source) {
         Value = value;
         Unit = unit;
-        Target = target is null ? null : new WeakReference<Visual>(target);
         Initialize();
     }
 
     /// <inheritdoc />
-    public RelativeLength(double value, string unit, Visual? target = null) : this(
+    public RelativeLength(double value, string unit, AvaloniaObject? target = null) : this(
         value,
         Converters.StringToUnit(unit),
         target) { }
 
-    [Pure] public override double ActualPixels => _actualPixels;
+    [Pure]
+    public override double ActualPixels => _actualPixels;
 
     public override event RelativeChangedEventHandler<double>? RelativeChanged;
 
@@ -517,28 +596,30 @@ public sealed class RelativeLength : SingleRelativeLength {
             RelativeChanged?.Invoke(this, new RelativeChangedEventArgs<double>(oldActualPixels, newActualPixels));
     }
 
-    public override RelativeLength Copy() { return new RelativeLength(Value, Unit, GetTarget()); }
+    public override RelativeLength Copy() { return new RelativeLength(Value, Unit, Target); }
 
     public override LightSingleRelativeLength LightCopy() { return new LightSingleRelativeLength(this); }
 
     private void SetSource() {
+        if (!_visualAnchor.TryGetTarget(out Visual? visual))
+            return;
         if (Unit switch {
-                Units.TemplatedParentWidth  => GetTarget()?.TemplatedParent as Visual,
-                Units.TemplatedParentHeight => GetTarget()?.TemplatedParent as Visual,
-                Units.LogicalParentWidth    => GetTarget()?.Parent as Visual,
-                Units.LogicalParentHeight   => GetTarget()?.Parent as Visual,
-                Units.VisualParentWidth     => GetTarget()?.GetVisualParent(),
-                Units.VisualParentHeight    => GetTarget()?.GetVisualParent(),
-                Units.SelfWidth             => GetTarget(),
-                Units.SelfHeight            => GetTarget(),
-                Units.FontSize              => GetTarget(),
-                Units.ViewPortWidth         => TopLevel.GetTopLevel(GetTarget()),
-                Units.ViewPortHeight        => TopLevel.GetTopLevel(GetTarget()),
+                Units.TemplatedParentWidth  => visual.TemplatedParent as Visual,
+                Units.TemplatedParentHeight => visual.TemplatedParent as Visual,
+                Units.LogicalParentWidth    => visual.Parent as Visual,
+                Units.LogicalParentHeight   => visual.Parent as Visual,
+                Units.VisualParentWidth     => visual.GetVisualParent(),
+                Units.VisualParentHeight    => visual.GetVisualParent(),
+                Units.SelfWidth             => visual,
+                Units.SelfHeight            => visual,
+                Units.FontSize              => visual,
+                Units.ViewPortWidth         => TopLevel.GetTopLevel(visual),
+                Units.ViewPortHeight        => TopLevel.GetTopLevel(visual),
                 _                           => null
             } is { } source)
-            Source = new WeakReference<Visual>(source);
+            _source = new WeakReference<Visual>(source);
         else
-            throw new InvalidOperationException($"Cannot find {GetTarget()}'s relative source.");
+            throw new InvalidOperationException($"Cannot find {visual}'s relative source.");
     }
 
     private void Initialize() {
@@ -554,13 +635,13 @@ public sealed class RelativeLength : SingleRelativeLength {
             return;
         }
 
-        if (GetTarget() is not { } target)
+        if (VisualAnchor is not { } visualAnchor)
             return;
-        if (!target.IsAttachedToVisualTree()) {
-            target.AttachedToVisualTree += UpdateOnAttachedToVisualTree;
+        if (!visualAnchor.IsAttachedToVisualTree()) {
+            visualAnchor.AttachedToVisualTree += UpdateOnAttachedToVisualTree;
         } else {
             SetSource();
-            if (Unit.IsRelative() && GetSource() is { } source)
+            if (Unit.IsRelative() && Source is { } source)
                 source.PropertyChanged += Update;
         }
 
@@ -569,14 +650,14 @@ public sealed class RelativeLength : SingleRelativeLength {
 
     private void UpdateOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs args) {
         SetSource();
-        if (Unit.IsRelative() && GetSource() is { } source)
+        if (Unit.IsRelative() && Source is { } source)
             source.PropertyChanged += Update;
         Update();
-        GetTarget()!.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
+        VisualAnchor!.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
     }
 
     private void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? args = null) {
-        if (GetSource() is not { } source)
+        if (Source is not { } source)
             return;
         double oldActualPixels = _actualPixels;
         // ReSharper disable once SwitchExpressionHandlesSomeKnownEnumValuesWithExceptionInDefault
@@ -596,7 +677,7 @@ public sealed class RelativeLength : SingleRelativeLength {
             _ => throw new ArgumentOutOfRangeException(nameof(Unit))
 #pragma warning restore CA2208
         };
-        InvokeIfChanged(oldActualPixels, _actualPixels);
+        InvokeIfChanged(oldActualPixels, ActualPixels);
         return;
 
         double GetWidth() {
@@ -621,7 +702,9 @@ public sealed class RelativeLength : SingleRelativeLength {
     /// </summary>
     /// <param name="length">A string representing relative length.</param>
     /// <param name="target">The target control.</param>
-    public new static RelativeLength Parse(string length, Visual? target = null) {
+    /// <param name="visualAnchor">The anchor for evaluating relative values.</param>
+    [Pure]
+    public new static RelativeLength Parse(string length, AvaloniaObject? target = null, Visual? visualAnchor = null) {
         length = length.Trim();
         if (char.IsNumber(length[^1]))
             return new RelativeLength(Convert.ToDouble(length));
@@ -633,7 +716,8 @@ public sealed class RelativeLength : SingleRelativeLength {
         return new RelativeLength(
             Convert.ToDouble(length[..(i + 1)]),
             Converters.StringToUnit(length[(i + 1)..]),
-            target);
+            target,
+            visualAnchor);
     }
 
     public static LightSingleRelativeLength operator *(RelativeLength relativeLength, RelativeScale scale) {
@@ -656,13 +740,13 @@ public sealed class RelativeLength : SingleRelativeLength {
 
     ~RelativeLength() {
         RelativeChanged = null;
-        if (GetSource() is { } source)
+        if (Source is { } source)
             source.PropertyChanged -= Update;
     }
 }
 
 public sealed class LightSingleRelativeLength : SingleRelativeLength {
-    public LightSingleRelativeLength(SingleRelativeLength length) {
+    public LightSingleRelativeLength(SingleRelativeLength length) : base(null) {
         Base = length;
         if (RelativeChanged is not null)
             Base.RelativeChanged += Update;
@@ -674,8 +758,8 @@ public sealed class LightSingleRelativeLength : SingleRelativeLength {
 
     public SingleRelativeLength Base { get; }
 
-    protected internal override WeakReference<Visual>? Target => Base.Target;
-    protected internal override WeakReference<Visual>? Source => Base.Source;
+    public override AvaloniaObject? Target => Base.Target;
+    public override Visual? Source => Base.Source;
 
     public override event RelativeChangedEventHandler<double>? RelativeChanged;
 
@@ -695,6 +779,7 @@ public readonly struct RelativeScale(double scale) {
     public double Value => Scale * 100;
     public Units Unit => Units.Percent;
 
+    [Pure]
     public static RelativeScale Parse(string scale) {
         scale = scale.Trim();
         if (scale[^1] != '%')
@@ -881,5 +966,70 @@ public readonly struct RelativeCalc(double value, Units unit = Units.Pixel, Visu
         };
 
         return result ?? throw new NullReferenceException("Relative source returns a null value.");
+    }
+}
+
+public sealed class RelativeExpression(string expression)
+    : IRelative<double>, IRelative<Thickness>, IRelative<CornerRadius>, IRelative<Size> {
+    [Pure]
+    public string Expression { get; } = expression;
+
+
+    CornerRadius IRelative<CornerRadius>.ActualValue => ThrowHelper<CornerRadius>();
+
+    event RelativeChangedEventHandler<CornerRadius>? IRelative<CornerRadius>.RelativeChanged {
+        // ReSharper disable ValueParameterNotUsed
+        add => ThrowHelper<CornerRadius>();
+        remove => ThrowHelper<CornerRadius>();
+        // ReSharper restore ValueParameterNotUsed
+    }
+
+    CornerRadius IRelative<CornerRadius>.Absolute() { return ((IRelative<CornerRadius>)this).ActualValue; }
+
+    double IRelative<double>.ActualValue => ThrowHelper<double>();
+
+
+    double IRelative<double>.Absolute() { return ((IRelative<double>)this).ActualValue; }
+
+    event RelativeChangedEventHandler<double>? IRelative<double>.RelativeChanged {
+        // ReSharper disable ValueParameterNotUsed
+        add => ThrowHelper<double>();
+        remove => ThrowHelper<double>();
+        // ReSharper restore ValueParameterNotUsed
+    }
+
+    public Size ActualValue => ThrowHelper<Size>();
+
+    public event RelativeChangedEventHandler<Size>? RelativeChanged;
+
+    public Size Absolute() { return ((IRelative<Size>)this).ActualValue; }
+
+
+    Thickness IRelative<Thickness>.ActualValue => ThrowHelper<Thickness>();
+
+    event RelativeChangedEventHandler<Thickness>? IRelative<Thickness>.RelativeChanged {
+        // ReSharper disable ValueParameterNotUsed
+        add => ThrowHelper<Thickness>();
+        remove => ThrowHelper<Thickness>();
+        // ReSharper restore ValueParameterNotUsed
+    }
+
+    Thickness IRelative<Thickness>.Absolute() { return ((IRelative<Thickness>)this).ActualValue; }
+
+    [DoesNotReturn]
+    private static T ThrowHelper<T>() { throw new NotEvaluatedException(); }
+
+    private sealed class NotEvaluatedException() : Exception("This expression have not been evaluated.");
+}
+
+public sealed class RelativeTypeConverter : TypeConverter {
+    public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) {
+        return sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
+    }
+
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value) {
+        if (value is string s)
+            return new RelativeExpression(s);
+        return base.ConvertFrom(context, culture, value);
     }
 }

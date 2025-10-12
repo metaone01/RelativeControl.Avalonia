@@ -3,8 +3,6 @@ using Avalonia;
 
 namespace RelativeControl.Avalonia;
 
-// public class RelativeThickness
-
 public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickness> {
     public static readonly RelativeThickness Empty = new(RelativeLength.Empty);
 
@@ -68,7 +66,7 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
     }
 
     public Thickness ActualThickness =>
-        new(Left.ActualPixels, Right.ActualPixels, Top.ActualPixels, Bottom.ActualPixels);
+        new(Left.ActualPixels, Top.ActualPixels, Right.ActualPixels, Bottom.ActualPixels);
 
     /// <summary>
     ///     Gets a value indicating whether all sides are equal.
@@ -189,7 +187,7 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
     /// <param name="target">The relative target.</param>
     /// <returns>The <see cref="RelativeThickness" />.</returns>
     public static RelativeThickness Parse(string s, Visual? target = null) {
-        string[] vals = Splitters.Split(s, ',',' ');
+        string[] vals = Splitters.Split(s, ',', ' ');
         return vals.Length switch {
             1 => new RelativeThickness(RelativeLengthBase.Parse(vals[0], target)),
             2 => new RelativeThickness(
