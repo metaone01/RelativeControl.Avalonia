@@ -24,7 +24,7 @@ jobs:
         run: dotnet build ./src/RelativeControl.Avalonia/RelativeControl.Avalonia.csproj --configuration Release
       # 发布到 GitHub Packages
       - name: Publish Packages to GitHub Packages
-        run: dotnet nuget push "./src/RelativeControl.Avalonia/bin/Release/*.nupkg" --source https://nuget.pkg.github.com/metaone01/index.json --api-key ${{ secrets.GITHUB_API_KEY }}
+        run: dotnet nuget push "./src/RelativeControl.Avalonia/bin/Release/*.nupkg" --source https://nuget.pkg.github.com/metaone01/index.json --api-key ${{ secrets.PACKAGE_API_KEY }}
       - name: Publish Package Symbols to GitHub Packages
-        run: dotnet nuget push "./src/RelativeControl.Avalonia/bin/Release/*.snupkg" --source https://nuget.pkg.github.com/metaone01/index.json --api-key ${{ secrets.GITHUB_API_KEY }}
+        run: dotnet nuget push "./src/RelativeControl.Avalonia/bin/Release/*.snupkg" --source https://nuget.pkg.github.com/metaone01/index.json --api-key ${{ secrets.PACKAGE_API_KEY }}
 
