@@ -2,11 +2,11 @@
 
 This provides some relative units and features for [Avalonia](https://github.com/AvaloniaUI/Avalonia).
 
-[中文](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/src/RelativeControl.Avalonia/README_CN.md)
+[中文](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/README_CN.md)
 
 [See Usages in Demo](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/RelativeControlView.axaml)
 
-[More Info](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/src/RelativeControl.Avalonia/API%20References.md)
+[More Info](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/API%20References.md)
 
 ## Get Started
 
