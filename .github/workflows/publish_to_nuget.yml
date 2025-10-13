@@ -18,10 +18,10 @@ jobs:
           dotnet-version: 9.0.x
       # 恢复依赖项
       - name: Restore dependencies
-        run: dotnet restore .\src\RelativeControl.Avalonia\RelativeControl.Avalonia.csproj
+        run: dotnet restore ./src/RelativeControl.Avalonia/RelativeControl.Avalonia.csproj
       # 构建项目
       - name: Build project
-        run: dotnet build .\src\RelativeControl.Avalonia\RelativeControl.Avalonia.csproj --configuration Release
+        run: dotnet build ./src/RelativeControl.Avalonia/RelativeControl.Avalonia.csproj --configuration Release
       # 发布到 NuGet.org
       - name: Publish Packages to NuGet
         run: dotnet nuget push ./src/RelativeControl.Avalonia/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
