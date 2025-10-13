@@ -4,7 +4,7 @@
 
 [English](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/README.md)
 
-[在demo中查看用例](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/RelativeControlView.axaml)
+[在demo中查看用例](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/MainWindow.axaml)
 
 [更多信息](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/API%20References.md)
 

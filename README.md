@@ -4,7 +4,7 @@ This provides some relative units and features for [Avalonia](https://github.com
 
 [中文](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/README_CN.md)
 
-[See Usages in Demo](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/RelativeControlView.axaml)
+[See Usages in Demo](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/MainWindow.axaml)
 
 [More Info](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/API%20References.md)
 
