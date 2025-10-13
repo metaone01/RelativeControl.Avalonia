@@ -15,13 +15,13 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 9.0.x
       # 恢复依赖项
       - name: Restore dependencies
         run: dotnet restore
       # 构建项目
       - name: Build project
-        run: dotnet build --configuration Release
+        run: dotnet build .\src\RelativeControl.Avalonia\RelativeControl.Avalonia.csproj --configuration Releas
       # 发布到 GitHub Packages
       - name: Publish Packages to GitHub Packages
         run: dotnet nuget push "./src/RelativeControl.Avalonia/bin/Release/*.nupkg" --source https://nuget.pkg.github.com/metaone01/index.json --api-key ${{ secrets.NUGET_API_KEY }}
