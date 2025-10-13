@@ -2,11 +2,11 @@
 
 本项目为[Avalonia](https://github.com/AvaloniaUI/Avalonia)提供了部分相对单位和功能
 
-[English](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/src/RelativeControl.Avalonia/README.md)
+[English](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/README.md)
 
 [在demo中查看用例](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/RelativeControlView.axaml)
 
-[更多信息](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/src/RelativeControl.Avalonia/API%20References.md)
+[更多信息](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/API%20References.md)
 
 ## 开始使用
 

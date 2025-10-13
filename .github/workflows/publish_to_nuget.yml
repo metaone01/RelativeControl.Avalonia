@@ -25,5 +25,3 @@ jobs:
       # 发布到 NuGet.org
       - name: Publish Packages to NuGet
         run: dotnet nuget push ./src/RelativeControl.Avalonia/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
-      - name: Publish Package Symbols to NuGet
-        run: dotnet nuget push ./src/RelativeControl.Avalonia/bin/Release/*.snupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
