@@ -65,6 +65,27 @@ public class RelativeThickness : IRelative<Thickness>, IEquatable<RelativeThickn
         Register();
     }
 
+    public void SetVisualAnchor(Visual uniformAnchor) {
+        Left.SetVisualAnchor(uniformAnchor);
+        Top.SetVisualAnchor(uniformAnchor);
+        Right.SetVisualAnchor(uniformAnchor);
+        Bottom.SetVisualAnchor(uniformAnchor);
+    }
+
+    public void SetVisualAnchor(Visual horizontalAnchor, Visual verticalAnchor) {
+        Left.SetVisualAnchor(horizontalAnchor);
+        Right.SetVisualAnchor(horizontalAnchor);
+        Top.SetVisualAnchor(verticalAnchor);
+        Bottom.SetVisualAnchor(verticalAnchor);
+    }
+
+    public void SetVisualAnchor(Visual leftAnchor, Visual topAnchor, Visual rightAnchor, Visual bottomAnchor) {
+        Left.SetVisualAnchor(leftAnchor);
+        Top.SetVisualAnchor(topAnchor);
+        Right.SetVisualAnchor(rightAnchor);
+        Bottom.SetVisualAnchor(bottomAnchor);
+    }
+
     public Thickness ActualThickness =>
         new(Left.ActualPixels, Top.ActualPixels, Right.ActualPixels, Bottom.ActualPixels);
 

@@ -100,7 +100,7 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
 
     [Pure]
     public static RelativeLengthBase Parse(string s, AvaloniaObject? target, Visual? visualAnchor = null) {
-        RelativeLengthBase[] lengths = ParseSingle(s, target,visualAnchor).ToArray<RelativeLengthBase>();
+        RelativeLengthBase[] lengths = ParseSingle(s, target, visualAnchor).ToArray<RelativeLengthBase>();
         return lengths.Length switch {
             0 => RelativeLength.Empty,
             1 => lengths[0],
@@ -199,14 +199,12 @@ public abstract class RelativeLengthBase : IRelative<double>, ICopiable<Relative
 
 public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visualAnchor = null, Visual? source = null)
     : RelativeLengthBase, IMulDiv<RelativeScale> {
-    protected readonly WeakReference<AvaloniaObject>? _target =
-        target is null ? null : new WeakReference<AvaloniaObject>(target);
+    protected readonly WeakReference<AvaloniaObject?> _target = new(target);
 
-    protected readonly WeakReference<Visual?> _visualAnchor =
-        new(visualAnchor ?? (target as Visual));
+    protected readonly WeakReference<Visual?> _visualAnchor = new(visualAnchor ?? (target as Visual));
 
-    protected WeakReference<Visual>? _source = source is null ? null : new WeakReference<Visual>(source);
-
+    protected readonly WeakReference<Visual?> _source = new(source);
+    
     public virtual double Value {
         [Pure]
         get;
@@ -222,8 +220,6 @@ public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visua
     [Pure]
     public virtual AvaloniaObject? Target {
         get {
-            if (_target is null)
-                return null;
             _target.TryGetTarget(out AvaloniaObject? target);
             return target;
         }
@@ -232,8 +228,6 @@ public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visua
     [Pure]
     public virtual Visual? Source {
         get {
-            if (_source is null)
-                return null;
             _source.TryGetTarget(out Visual? source);
             return source;
         }
@@ -617,7 +611,7 @@ public sealed class RelativeLength : SingleRelativeLength {
                 Units.ViewPortHeight        => TopLevel.GetTopLevel(visual),
                 _                           => null
             } is { } source)
-            _source = new WeakReference<Visual>(source);
+            _source.SetTarget(source);
         else
             throw new InvalidOperationException($"Cannot find {visual}'s relative source.");
     }

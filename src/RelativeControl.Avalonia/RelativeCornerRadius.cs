@@ -75,6 +75,24 @@ public class RelativeCornerRadius : IRelative<CornerRadius>, IEquatable<Relative
         return new CornerRadius(TopLeft.Absolute(), TopRight.Absolute(), BottomRight.Absolute(), BottomLeft.Absolute());
     }
 
+    public void SetVisualAnchor(Visual uniformAnchor) {
+        TopLeft.SetVisualAnchor(uniformAnchor);
+        TopRight.SetVisualAnchor(uniformAnchor);
+        BottomRight.SetVisualAnchor(uniformAnchor);
+        BottomLeft.SetVisualAnchor(uniformAnchor);
+    }
+
+    public void SetVisualAnchor(
+        Visual topLeftAnchor,
+        Visual topRightAnchor,
+        Visual bottomRightAnchor,
+        Visual bottomLeftAnchor) {
+        TopLeft.SetVisualAnchor(topLeftAnchor);
+        TopRight.SetVisualAnchor(topRightAnchor);
+        BottomRight.SetVisualAnchor(bottomRightAnchor);
+        BottomLeft.SetVisualAnchor(bottomLeftAnchor);
+    }
+
     public static RelativeCornerRadius operator +(RelativeCornerRadius left, RelativeCornerRadius right) {
         return new RelativeCornerRadius(
             left.TopLeft + right.TopLeft,
