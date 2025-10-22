@@ -14,10 +14,10 @@ public class RelativeOperatorTest {
         RelativeLength b = new(15, Units.Centimeter, border);
         RelativeLength c = new(10, Units.Millimeter, border);
         RelativeLength d = new(5, Units.Inch, border);
-        Assert.Equivalent(new RelativeLength(20 + 96 / 2.54 * 15), a + b, true);
-        Assert.Equivalent(new RelativeLength(20 + 96 / 2.54 * 15 + 96 / 2.54 * 10 / 1000), a + b + c, true);
+        Assert.Equivalent(new RelativeLength(20 + 96 / 2.54 * 15,Units.Pixel,null), a + b, true);
+        Assert.Equivalent(new RelativeLength(20 + 96 / 2.54 * 15 + 96 / 2.54 * 10 / 1000,Units.Pixel,null), a + b + c, true);
         Assert.Equivalent(
-            new RelativeLength(20 + 96 / 2.54 * 15 + 96 / 2.54 * 10 / 1000 + 96 * 5),
+            new RelativeLength(20 + 96 / 2.54 * 15 + 96 / 2.54 * 10 / 1000 + 96 * 5,Units.Pixel,null),
             a + b + c + d,
             true);
         Relative.SetWidth(border, a + b + c + d);
