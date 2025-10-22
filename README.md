@@ -2,11 +2,21 @@
 
 This provides some relative units and features for [Avalonia](https://github.com/AvaloniaUI/Avalonia).
 
-[中文](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/README_CN.md)
+[中文](README_CN.md)
 
 [See Usages in Demo](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/MainWindow.axaml)
 
-[More Info](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/API%20References.md)
+[More Info](API%20References.md)
+
+## New Features in 1.3.x
+- Now support using relatives in style setters.
+```xaml
+<Style Selector="Button">
+    <Setter Property="r:Relative.Width" Value="20pw"/>
+</Style>
+```
+- Now you can use a visual anchor to provide relative feature for objects which is non-visual but have layout properties.
+
 
 ## Get Started
 

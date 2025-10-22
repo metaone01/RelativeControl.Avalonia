@@ -2,11 +2,28 @@
 
 本项目为[Avalonia](https://github.com/AvaloniaUI/Avalonia)提供了部分相对单位和功能
 
-[English](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/README.md)
+[English](README.md)
 
 [在demo中查看用例](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/Demo.RelativeControl/Demo.RelativeControl/MainWindow.axaml)
 
-[更多信息](https://github.com/metaone01/RelativeControl.Avalonia/tree/main/API%20References.md)
+[更多信息](API%20References.md)
+
+## 1.3.x中增加的新功能
+
+- 现在支持在Style Setter中使用相对单位
+
+```xaml
+<Style Selector="Button">
+    <Setter Property="r:Relative.Width" Value="20pw"/>
+</Style>
+```
+
+- 现在你可以为非Visual控件，但是有布局属性的实例使用相对单位
+
+```csharp
+var _object: AvaloniaObject = new();
+Relative.SetWidth(_object,"10pw",)    
+```
 
 ## 开始使用
 
@@ -97,6 +114,17 @@ dotnet add package RelativeControl.Avalonia
 
 > `RelativeBindOneTime`只在控件附加到视觉树时更新一次。
 
+### 为非Visual控件，但是有布局属性的实例使用相对单位
+> 实际上，此功能是将Source的搜索锚点由Target修改为VisualAnchor实现的。
+> 
+> 此功能还可以用于让某个控件以另一个控件作为自己的相对源
+
+```csharp
+Button button = new();
+AvaloniaObject _object = new();
+Relative.SetWidth(_object,"10pw",button);    
+```
+
 ### 在自定义属性中使用相对单位:
 
 #### StyledProperty:
@@ -166,7 +194,7 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
 
 - RelativeBinding
 
-> 支持相对属性绑定 *[如何绑定自定义属性？](#bind-any-property)*
+> 支持相对属性绑定 *[如何绑定自定义属性？](#为任意属性绑定相对值)*
 
 ### 1.0.0-beta
 
