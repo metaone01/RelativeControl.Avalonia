@@ -216,6 +216,39 @@ public class RelativeSingleValueChangedTest {
     }
 
     [AvaloniaFact]
+    public void Test_Relative_SingleValue_Double_Change_VisualAnchor_Before_Show() {
+        Border target = new();
+        Border visualAnchor = new();
+        Border anchorSource = new() { Width = 1440, Child = visualAnchor };
+        Border source = new() { Width = 800, Child = target };
+        WrapPanel panel = new() { Children = { source, anchorSource } };
+        Window window = new() { Width = 2560, Content = panel };
+        Relative.SetWidth(target, "50pw");
+        var length = (target.GetValue(Relative.WidthProperty) as RelativeLengthBase)!;
+        length.SetVisualAnchor(visualAnchor);
+        window.Show();
+        Assert.StrictEqual(0.5 * anchorSource.Width, target.Width);
+    }
+    [AvaloniaFact]
+    public void Test_Relative_SingleValue_Double_Change_VisualAnchor_After_Show() {
+        Border target = new();
+        Border visualAnchor = new();
+        Border anchorSource = new() { Width = 1440, Child = visualAnchor };
+        Border source = new() { Width = 800, Child = target };
+        WrapPanel panel = new() { Children = { source, anchorSource } };
+        Window window = new() { Width = 2560, Content = panel };
+        Relative.SetWidth(target, "50pw");
+        window.Show();
+        Assert.Equivalent(
+            new RelativeLength(50, Units.LogicalParentWidth, target),
+            target.GetValue(Relative.WidthProperty),
+            true);
+        var length = (target.GetValue(Relative.WidthProperty) as RelativeLengthBase)!;
+        length.SetVisualAnchor(visualAnchor);
+        Assert.StrictEqual(0.5 * anchorSource.Width, target.Width);
+    }
+
+    [AvaloniaFact]
     public void Test_Relative_SingleValue_CornerRadius_Changed() {
         Button button = new();
         Border border = new() { Width = 1440, Height = 900, Child = button };

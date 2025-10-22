@@ -204,94 +204,68 @@ public class Relative : AvaloniaObject {
         }
     }
 
-    public static void SetWidth(Visual visual, object length) {
-        visual.SetValue(
-            WidthProperty,
-            length switch {
-                RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, visual),
-                string s => RelativeLengthBase.Parse(s, visual),
-                RelativeLengthBase l => l,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+    public static void SetWidth(Visual target, object length) {
+        SetRelativeDoubleProperty(target, WidthProperty, length);
     }
 
-    public static IRelative<double> GetWidth(Visual visual) { return visual.GetValue(WidthProperty); }
-
-
-    public static void SetHeight(Visual visual, object length) {
-        visual.SetValue(
-            HeightProperty,
-            length switch {
-                RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, visual),
-                string s => RelativeLengthBase.Parse(s, visual),
-                RelativeLengthBase l => l,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+    public static void SetWidth(AvaloniaObject target, object length, Visual visualAnchor) {
+        SetRelativeDoubleProperty(target, WidthProperty, length, visualAnchor);
     }
 
-    public static IRelative<double> GetHeight(Visual visual) { return visual.GetValue(HeightProperty); }
+    public static IRelative<double> GetWidth(AvaloniaObject target) { return target.GetValue(WidthProperty); }
 
-    public static void SetMinWidth(Visual visual, object length) {
-        visual.SetValue(
-            MinWidthProperty,
-            length switch {
-                RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, visual),
-                string s => RelativeLengthBase.Parse(s, visual),
-                IRelative<double> rd => rd,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+    public static void SetHeight(Visual target, object length) {
+        SetRelativeDoubleProperty(target, HeightProperty, length);
     }
 
-    public static IRelative<double> GetMinWidth(Visual visual) { return visual.GetValue(MinWidthProperty); }
-
-    public static void SetMinHeight(Visual visual, object length) {
-        visual.SetValue(
-            MinHeightProperty,
-            length switch {
-                RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, visual),
-                string s => RelativeLengthBase.Parse(s, visual),
-                IRelative<double> l => l,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+    public static void SetHeight(AvaloniaObject target, object length, Visual visualAnchor) {
+        SetRelativeDoubleProperty(target, HeightProperty, length, visualAnchor);
     }
 
-    public static IRelative<double> GetMinHeight(Visual visual) { return visual.GetValue(MinHeightProperty); }
+    public static IRelative<double> GetHeight(AvaloniaObject target) { return target.GetValue(HeightProperty); }
 
-    public static void SetMaxWidth(Visual visual, object length) {
-        visual.SetValue(
-            MaxWidthProperty,
-            length switch {
-                RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, visual),
-                string s => RelativeLengthBase.Parse(s, visual),
-                IRelative<double> l => l,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+    public static void SetMinWidth(Visual target, object length) {
+        SetRelativeDoubleProperty(target, MinWidthProperty, length);
     }
 
-    public static IRelative<double> GetMaxWidth(Visual visual) { return visual.GetValue(MaxWidthProperty); }
-
-    public static void SetMaxHeight(Visual visual, object length) {
-        visual.SetValue(
-            MaxHeightProperty,
-            length switch {
-                RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, visual),
-                string s => RelativeLengthBase.Parse(s, visual),
-                IRelative<double> l => l,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+    public static void SetMinWidth(AvaloniaObject target, object length, Visual? visualAnchor = null) {
+        SetRelativeDoubleProperty(target, MinWidthProperty, length, visualAnchor);
     }
 
-    public static IRelative<double> GetMaxHeight(Visual visual) { return visual.GetValue(MaxHeightProperty); }
+    public static IRelative<double> GetMinWidth(AvaloniaObject target) { return target.GetValue(MinWidthProperty); }
+
+    public static void SetMinHeight(Visual target, object length) {
+        SetRelativeDoubleProperty(target, MinHeightProperty, length);
+    }
+
+    public static void SetMinHeight(AvaloniaObject target, object length, Visual? visualAnchor = null) {
+        SetRelativeDoubleProperty(target, MinHeightProperty, length, visualAnchor);
+    }
+
+    public static IRelative<double> GetMinHeight(AvaloniaObject target) { return target.GetValue(MinHeightProperty); }
+
+    public static void SetMaxWidth(Visual target, object length) {
+        SetRelativeDoubleProperty(target, MaxWidthProperty, length);
+    }
+
+    public static void SetMaxWidth(AvaloniaObject target, object length, Visual? visualAnchor = null) {
+        SetRelativeDoubleProperty(target, MaxWidthProperty, length, visualAnchor);
+    }
+
+    public static IRelative<double> GetMaxWidth(AvaloniaObject target) { return target.GetValue(MaxWidthProperty); }
+
+    public static void SetMaxHeight(Visual target, object length) {
+        SetRelativeDoubleProperty(target, MaxHeightProperty, length);
+    }
+
+    public static void SetMaxHeight(AvaloniaObject target, object length, Visual? visualAnchor = null) {
+        SetRelativeDoubleProperty(target, MaxHeightProperty, length, visualAnchor);
+    }
+
+    public static IRelative<double> GetMaxHeight(AvaloniaObject target) { return target.GetValue(MaxHeightProperty); }
 
     public static void SetBorderThickness(Visual visual, object length) {
-        visual.SetValue(
-            BorderThicknessProperty,
-            length switch {
-                RelativeExpression expression => RelativeThickness.Parse(expression.Expression, visual),
-                string s => RelativeThickness.Parse(s, visual),
-                IRelative<Thickness> l => l,
-                _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
-            });
+        visual.SetValue(BorderThicknessProperty, RelativeParseHelper.ParseToThickness(visual, length));
     }
 
     public static IRelative<Thickness> GetBorderThickness(Visual visual) {
@@ -307,10 +281,6 @@ public class Relative : AvaloniaObject {
                 IRelative<CornerRadius> l => l,
                 _ => throw new InvalidCastException($"{length.GetType()} is not a valid type.")
             });
-    }
-
-    public static void SetCornerRadius(Visual visual, RelativeLengthBase length) {
-        visual.SetValue(CornerRadiusProperty, length);
     }
 
     public static IRelative<CornerRadius> GetCornerRadius(Visual visual) {
@@ -345,35 +315,154 @@ public class Relative : AvaloniaObject {
     public static IRelative<Thickness> GetPadding(Visual visual) { return visual.GetValue(PaddingProperty); }
 
 
-    public static void SetOneTimeWidth(Visual visual, string s) {
-        visual.AttachedToVisualTree -= Update;
-        visual.AttachedToVisualTree += Update;
-        if (visual.IsAttachedToVisualTree())
-            Update();
+    public static void SetOneTimeWidth(Visual target, string s) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.WidthProperty, s);
+    }
+
+    public static void SetOneTimeWidth(AvaloniaObject target, string s, Visual visualAnchor) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.WidthProperty, s, visualAnchor);
+    }
+
+    public static void SetOneTimeMinWidth(Visual target, string s) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MinWidthProperty, s);
+    }
+
+    public static void SetOneTimeMinWidth(AvaloniaObject target, string s, Visual visualAnchor) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MinWidthProperty, s, visualAnchor);
+    }
+
+    public static void SetOneTimeMaxWidth(Visual target, string s) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MaxWidthProperty, s);
+    }
+
+    public static void SetOneTimeMaxWidth(AvaloniaObject target, string s, Visual visualAnchor) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MaxWidthProperty, s, visualAnchor);
+    }
+
+    public static void SetOneTimeHeight(Visual target, string s) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.HeightProperty, s);
+    }
+
+    public static void SetOneTimeHeight(AvaloniaObject target, string s, Visual visualAnchor) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.HeightProperty, s, visualAnchor);
+    }
+
+    public static void SetOneTimeMinHeight(Visual target, string s) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MinHeightProperty, s);
+    }
+
+    public static void SetOneTimeMinHeight(AvaloniaObject target, string s, Visual visualAnchor) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MinHeightProperty, s, visualAnchor);
+    }
+
+    public static void SetOneTimeMaxHeight(Visual target, string s) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MaxHeightProperty, s);
+    }
+
+    public static void SetOneTimeMaxHeight(AvaloniaObject target, string s, Visual visualAnchor) {
+        SetOneTimeRelativeDoubleProperty(target, Layoutable.MaxHeightProperty, s, visualAnchor);
+    }
+
+    public static void SetOneTimeMargin(Visual target, string s) {
+        SetOneTimeRelativeThicknessProperty(target, Layoutable.MarginProperty, s);
+    }
+
+    public static void SetOneTimeBorder(Visual target, string s) {
+        SetOneTimeRelativeThicknessProperty(target, Border.BorderThicknessProperty, s);
+    }
+
+    public static void SetOneTimePadding(Visual target, string s) {
+        SetOneTimeRelativeThicknessProperty(target, Decorator.PaddingProperty, s);
+    }
+
+    public static void SetOneTimeCornerRadius(Visual target, string s) {
+        SetOneTimeRelativeCornerRadiusProperty(target, Border.CornerRadiusProperty, s);
+    }
+
+    public static void SetRelativeDoubleProperty(
+        AvaloniaObject target,
+        AvaloniaProperty property,
+        object value,
+        Visual? visualAnchor = null) {
+        if ((visualAnchor ?? target as Visual) is null)
+            throw new InvalidOperationException("Either Target or visualAnchor must be a Visual control.");
+        if (visualAnchor is not null)
+            (value as RelativeLengthBase)?.SetVisualAnchor(visualAnchor);
+        target.SetValue(property, RelativeParseHelper.ParseToDouble(target, value, visualAnchor));
+    }
+
+    public static void SetRelativeThicknessProperty(Visual target, AvaloniaProperty property, object value) {
+        target.SetValue(property, RelativeParseHelper.ParseToThickness(target, value));
+    }
+
+    public static void SetRelativeCornerRadiusProperty(Visual target, AvaloniaProperty property, object value) {
+        target.SetValue(property, RelativeParseHelper.ParseToCornerRadius(target, value));
+    }
+
+    private static void SetOneTimeRelativeProperty<T>(
+        AvaloniaObject target,
+        AvaloniaProperty property,
+        object value,
+        Func<AvaloniaObject, object, Visual?, IRelative<T>> parser,
+        Visual? visualAnchor = null) {
+        if ((visualAnchor ?? target as Visual) is not { } anchor) {
+            throw new InvalidCastException("Either target or visualAnchor must be a Visual control.");
+        }
+
+        if (!anchor.IsAttachedToVisualTree()) {
+            anchor.AttachedToVisualTree -= Update;
+            anchor.AttachedToVisualTree += Update;
+            return;
+        }
+
+        Update();
         return;
 
+
         void Update(object? _ = null, VisualTreeAttachmentEventArgs? __ = null) {
-            visual.SetValue(Layoutable.WidthProperty, RelativeCalc.Calc(s, visual));
+            if ((visualAnchor ?? target as Visual) is null)
+                throw new InvalidOperationException("Either Target or visualAnchor must be a Visual control.");
+            if (visualAnchor is not null)
+                (value as RelativeLengthBase)?.SetVisualAnchor(visualAnchor);
+            target.SetValue(property, parser(target, value, visualAnchor).ActualValue);
         }
     }
 
-    public static void SetOneTimeHeight(Visual visual, string s) {
-        visual.AttachedToVisualTree -= Update;
-        visual.AttachedToVisualTree += Update;
-        if (visual.IsAttachedToVisualTree())
-            Update();
+    private static void SetOneTimeRelativeProperty<T>(
+        Visual target,
+        AvaloniaProperty property,
+        object value,
+        Func<Visual, object, IRelative<T>> parser) {
+        if (!target.IsAttachedToVisualTree()) {
+            target.AttachedToVisualTree -= Update;
+            target.AttachedToVisualTree += Update;
+            return;
+        }
+
+        Update();
         return;
 
+
         void Update(object? _ = null, VisualTreeAttachmentEventArgs? __ = null) {
-            visual.SetValue(Layoutable.HeightProperty, RelativeCalc.Calc(s, visual));
+            target.SetValue(property, parser(target, value).ActualValue);
         }
     }
 
-    public static void SetProperty(AvaloniaObject obj, AvaloniaProperty property, object value) {
-        obj.SetValue(property, value);
+    public static void SetOneTimeRelativeDoubleProperty(
+        AvaloniaObject target,
+        AvaloniaProperty property,
+        object value,
+        Visual? visualAnchor = null) {
+        SetOneTimeRelativeProperty(target, property, value, RelativeParseHelper.ParseToDouble, visualAnchor);
     }
 
-    public static object? GetProperty(AvaloniaObject obj, AvaloniaProperty property) { return obj.GetValue(property); }
+    public static void SetOneTimeRelativeThicknessProperty(Visual target, AvaloniaProperty property, object value) {
+        SetOneTimeRelativeProperty(target, property, value, RelativeParseHelper.ParseToThickness);
+    }
+
+    public static void SetOneTimeRelativeCornerRadiusProperty(Visual target, AvaloniaProperty property, object value) {
+        SetOneTimeRelativeProperty(target, property, value, RelativeParseHelper.ParseToCornerRadius);
+    }
 }
 
 public class RelativeBinding(BindingBase sourceValue, string value) : MarkupExtension {
@@ -387,7 +476,7 @@ public class RelativeBinding(BindingBase sourceValue, string value) : MarkupExte
     }
 }
 
-public class RelativeBindOneTime(BindingBase sourceValue, string value) : MarkupExtension {
+public class OneTimeRelativeBinding(BindingBase sourceValue, string value) : MarkupExtension {
     public readonly RelativeScale Scale = RelativeScale.Parse(value);
     public readonly BindingBase SourceValue = sourceValue;
 
@@ -396,5 +485,34 @@ public class RelativeBindOneTime(BindingBase sourceValue, string value) : Markup
         SourceValue.Converter = new RelativeConverter();
         SourceValue.ConverterParameter = Scale;
         return SourceValue;
+    }
+}
+
+public static class RelativeParseHelper {
+    public static IRelative<double> ParseToDouble(AvaloniaObject target, object value, Visual? visualAnchor = null) {
+        return value switch {
+            RelativeExpression expression => RelativeLengthBase.Parse(expression.Expression, target, visualAnchor),
+            string s                      => RelativeLengthBase.Parse(s, target, visualAnchor),
+            IRelative<double> relative    => relative,
+            _                             => throw new InvalidCastException($"{value.GetType()} is not a valid type.")
+        };
+    }
+
+    public static IRelative<Thickness> ParseToThickness(Visual target, object value) {
+        return value switch {
+            RelativeExpression expression => RelativeThickness.Parse(expression.Expression, target),
+            string s                      => RelativeThickness.Parse(s, target),
+            IRelative<Thickness> relative    => relative,
+            _                             => throw new InvalidCastException($"{value.GetType()} is not a valid type.")
+        };
+    }
+
+    public static IRelative<CornerRadius> ParseToCornerRadius(Visual target, object value) {
+        return value switch {
+            RelativeExpression expression => RelativeCornerRadius.Parse(expression.Expression, target),
+            string s                      => RelativeCornerRadius.Parse(s, target),
+            IRelative<CornerRadius> relative    => relative,
+            _                             => throw new InvalidCastException($"{value.GetType()} is not a valid type.")
+        };
     }
 }
