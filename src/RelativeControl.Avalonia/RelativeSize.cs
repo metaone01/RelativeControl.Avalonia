@@ -46,11 +46,22 @@ public class RelativeSize : IRelative<Size>, IEquatable<RelativeSize> {
     ///     Initializes a new instance of the <see cref="RelativeSize" /> structure.
     /// </summary>
     /// <param name="vector2">The vector to take values from.</param>
-    /// <param name="xUnit">The X unit.</param>
-    /// <param name="yUnit">The Y unit.</param>
-    public RelativeSize(Vector2 vector2, Units xUnit = Units.Pixel, Units yUnit = Units.Pixel) : this(
-        new RelativeLength(vector2.X, xUnit),
-        new RelativeLength(vector2.Y, yUnit)) { }
+    /// <param name="xUnit">The unit of X.</param>
+    /// <param name="xTarget">The target of X .</param>
+    /// <param name="xVisualAnchor">The visual anchor of X.</param>
+    /// <param name="yUnit">The unit of Y. Defaults to <paramref name="xUnit"/>.</param>
+    /// <param name="yTarget">The target of Y. Defaults to <paramref name="xTarget"/>.</param>
+    /// <param name="yVisualAnchor">The visual anchor of Y. Defaults to <paramref name="xVisualAnchor"/>.</param>
+    public RelativeSize(
+        Vector2 vector2,
+        Units xUnit,
+        AvaloniaObject? xTarget,
+        Visual? xVisualAnchor = null,
+        Units? yUnit = null,
+        AvaloniaObject? yTarget = null,
+        Visual? yVisualAnchor = null) : this(
+        new RelativeLength(vector2.X, xUnit, xTarget, xVisualAnchor),
+        new RelativeLength(vector2.Y, yUnit ?? xUnit, yTarget ?? xTarget, yVisualAnchor ?? xVisualAnchor)) { }
 
     public Size ActualSize => new(Width.ActualPixels, Height.ActualPixels);
 

@@ -204,7 +204,7 @@ public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visua
     protected readonly WeakReference<Visual?> _visualAnchor = new(visualAnchor ?? (target as Visual));
 
     protected readonly WeakReference<Visual?> _source = new(source);
-    
+
     public virtual double Value {
         [Pure]
         get;
@@ -249,7 +249,7 @@ public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visua
     public abstract override SingleRelativeLength Copy();
     public abstract override LightSingleRelativeLength LightCopy();
 
-    public override void SetVisualAnchor(Visual? anchor) { _visualAnchor.SetTarget(anchor); }
+    protected abstract void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? args = null);
 
     [Pure]
     public static SingleRelativeLength Min(SingleRelativeLength left, SingleRelativeLength right) {
@@ -277,7 +277,7 @@ public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visua
         if (left.Unit.Equals(right.Unit) && ReferenceEquals(left.Target, right.Target))
             return new RelativeLength(left.Value + right.Value, left.Unit, left.Target);
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
-            return new RelativeLength(left.ActualPixels + right.ActualPixels);
+            return new RelativeLength(left.ActualPixels + right.ActualPixels, Units.Pixel, null);
         return new RelativeLengthMerge(left, right);
     }
 
@@ -286,7 +286,7 @@ public abstract class SingleRelativeLength(AvaloniaObject? target, Visual? visua
         if (left.Unit.Equals(right.Unit) && ReferenceEquals(left.Target, right.Target))
             return new RelativeLength(left.Value - right.Value, left.Unit, left.Target);
         if (left.Unit.IsAbsolute() && right.Unit.IsAbsolute())
-            return new RelativeLength(left.ActualPixels - right.ActualPixels);
+            return new RelativeLength(left.ActualPixels - right.ActualPixels, Units.Pixel, null);
         return new RelativeLengthMerge(left, right * -1);
     }
 
@@ -548,9 +548,9 @@ public sealed class RelativeLengthMerge : RelativeLengthCollection {
 }
 
 public sealed class RelativeLength : SingleRelativeLength {
-    public static readonly RelativeLength Empty = new(-1D);
-    public static readonly RelativeLength PositiveInfinity = new(double.PositiveInfinity);
-    public static readonly RelativeLength NegativeInfinity = new(double.NegativeInfinity);
+    public static readonly RelativeLength Empty = new(-1D, Units.Pixel, null);
+    public static readonly RelativeLength PositiveInfinity = new(double.PositiveInfinity, Units.Pixel, null);
+    public static readonly RelativeLength NegativeInfinity = new(double.NegativeInfinity, Units.Pixel, null);
 
     private double _actualPixels;
 
@@ -565,8 +565,8 @@ public sealed class RelativeLength : SingleRelativeLength {
     /// <param name="visualAnchor">The visual component that the <paramref name="target" /> is depend on.</param>
     public RelativeLength(
         double value,
-        Units unit = Units.Pixel,
-        AvaloniaObject? target = null,
+        Units unit,
+        AvaloniaObject? target,
         Visual? visualAnchor = null,
         Visual? source = null) : base(target, visualAnchor, source) {
         Value = value;
@@ -575,15 +575,32 @@ public sealed class RelativeLength : SingleRelativeLength {
     }
 
     /// <inheritdoc />
-    public RelativeLength(double value, string unit, AvaloniaObject? target = null) : this(
+    public RelativeLength(string value, AvaloniaObject? target, Visual? visualAnchor = null, Visual? source = null) :
+        base(target, visualAnchor, source) {
+        var (val, unit) = ValueUnitSeparator(value);
+        Value = val;
+        Unit = unit;
+        Initialize();
+    }
+
+    /// <inheritdoc />
+    public RelativeLength(double value, string unit, AvaloniaObject target, Visual? visualAnchor = null) : this(
         value,
         Converters.StringToUnit(unit),
-        target) { }
+        target,
+        visualAnchor) { }
+
 
     [Pure]
     public override double ActualPixels => _actualPixels;
 
     public override event RelativeChangedEventHandler<double>? RelativeChanged;
+
+    public override void SetVisualAnchor(Visual? anchor) {
+        _visualAnchor.SetTarget(anchor);
+        SetSource();
+        Update();
+    }
 
     protected override void InvokeIfChanged(double oldActualPixels, double newActualPixels) {
         if (Math.Abs(oldActualPixels - newActualPixels) > 1e-5)
@@ -650,7 +667,7 @@ public sealed class RelativeLength : SingleRelativeLength {
         VisualAnchor!.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
     }
 
-    private void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? args = null) {
+    protected override void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? args = null) {
         if (Source is not { } source)
             return;
         double oldActualPixels = _actualPixels;
@@ -691,6 +708,17 @@ public sealed class RelativeLength : SingleRelativeLength {
         }
     }
 
+    private static (double, Units) ValueUnitSeparator(string length) {
+        length = length.Trim();
+        if (char.IsNumber(length[^1]))
+            return (Convert.ToDouble(length), Units.Pixel);
+
+        int i = length.Length - 2;
+        while (!(char.IsNumber(length[i]) || length[i] == '.'))
+            --i;
+        return (Convert.ToDouble(length[..(i + 1)]), Converters.StringToUnit(length[(i + 1)..]));
+    }
+
     /// <summary>
     ///     Parse a string to relative length.
     /// </summary>
@@ -699,19 +727,9 @@ public sealed class RelativeLength : SingleRelativeLength {
     /// <param name="visualAnchor">The anchor for evaluating relative values.</param>
     [Pure]
     public new static RelativeLength Parse(string length, AvaloniaObject? target = null, Visual? visualAnchor = null) {
-        length = length.Trim();
-        if (char.IsNumber(length[^1]))
-            return new RelativeLength(Convert.ToDouble(length));
+        var (value, unit) = ValueUnitSeparator(length);
 
-        int i = length.Length - 2;
-        while (!(char.IsNumber(length[i]) || length[i] == '.'))
-            --i;
-
-        return new RelativeLength(
-            Convert.ToDouble(length[..(i + 1)]),
-            Converters.StringToUnit(length[(i + 1)..]),
-            target,
-            visualAnchor);
+        return new RelativeLength(value, unit, target, visualAnchor);
     }
 
     public static LightSingleRelativeLength operator *(RelativeLength relativeLength, RelativeScale scale) {
@@ -730,7 +748,9 @@ public sealed class RelativeLength : SingleRelativeLength {
         return lightCopy;
     }
 
-    public static implicit operator RelativeLength(double value) { return new RelativeLength(value); }
+    public static implicit operator RelativeLength(double value) {
+        return new RelativeLength(value, Units.Pixel, null);
+    }
 
     ~RelativeLength() {
         RelativeChanged = null;
@@ -760,7 +780,19 @@ public sealed class LightSingleRelativeLength : SingleRelativeLength {
     public override LightSingleRelativeLength Copy() { return new LightSingleRelativeLength(this); }
     public override LightSingleRelativeLength LightCopy() { return Copy(); }
 
-    private void Update(object? _, RelativeChangedEventArgs<double> args) { RelativeChanged?.Invoke(this, args); }
+    protected override void Update(
+        object? _ = null,
+        AvaloniaPropertyChangedEventArgs? avaloniaPropertyChangedEventArgs = null) {
+        RelativeChanged?.Invoke(this, new RelativeChangedEventArgs<double>(double.NaN, Base.ActualValue));
+    }
+
+    private void Update(object? _ = null, RelativeChangedEventArgs? avaloniaPropertyChangedEventArgs = null) {
+        RelativeChanged?.Invoke(this, new RelativeChangedEventArgs<double>(double.NaN, Base.ActualValue));
+    }
+
+    public override void SetVisualAnchor(Visual? anchor) {
+        throw new InvalidOperationException("Cannot set visual anchor on a light copy of RelativeLength.");
+    }
 
     protected override void InvokeIfChanged(double oldActualPixels, double newActualPixels) {
         if (Math.Abs(oldActualPixels - newActualPixels) > 1e-5)
