@@ -612,6 +612,8 @@ public sealed class RelativeLength : SingleRelativeLength {
     public override LightSingleRelativeLength LightCopy() { return new LightSingleRelativeLength(this); }
 
     private void SetSource() {
+        if (Unit.IsAbsolute())
+            return;
         if (!_visualAnchor.TryGetTarget(out Visual? visual))
             return;
         if (Unit switch {
