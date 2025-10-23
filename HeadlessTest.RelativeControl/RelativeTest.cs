@@ -227,8 +227,11 @@ public class RelativeSingleValueChangedTest {
         var length = (target.GetValue(Relative.WidthProperty) as RelativeLengthBase)!;
         length.SetVisualAnchor(visualAnchor);
         window.Show();
-        Assert.StrictEqual(0.5 * anchorSource.Width, target.Width);
+        Assert.StrictEqual(0.5 * 1440, target.Width);
+        anchorSource.Width = 800;
+        Assert.StrictEqual(0.5 * 800, target.Width);
     }
+
     [AvaloniaFact]
     public void Test_Relative_SingleValue_Double_Change_VisualAnchor_After_Show() {
         Border target = new();
@@ -245,7 +248,9 @@ public class RelativeSingleValueChangedTest {
             true);
         var length = (target.GetValue(Relative.WidthProperty) as RelativeLengthBase)!;
         length.SetVisualAnchor(visualAnchor);
-        Assert.StrictEqual(0.5 * anchorSource.Width, target.Width);
+        Assert.StrictEqual(0.5 * 1440, target.Width);
+        anchorSource.Width = 800;
+        Assert.StrictEqual(0.5 * 800, target.Width);
     }
 
     [AvaloniaFact]

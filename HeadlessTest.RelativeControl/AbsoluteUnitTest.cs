@@ -23,7 +23,6 @@ public class AbsoluteUnitTest {
     public void Test_Absolute_Unit_Pixel_Change_VisualAnchor() {
         Border target = new() { Width = 800, Height = 600 };
         Border anchor = new() { Width = 1440, Height = 900, Child = target };
-        ManualResetEvent wait = new(false);
         Window window = new() { Content = anchor };
         window.Show();
         Relative.SetWidth(target, "20px");
@@ -49,7 +48,6 @@ public class AbsoluteUnitTest {
     public void Test_Absolute_Unit_Inch_Change_VisualAnchor() {
         Border target = new() { Width = 800, Height = 600 };
         Border anchor = new() { Width = 1440, Height = 900, Child = target };
-        ManualResetEvent wait = new(false);
         Window window = new() { Content = anchor };
         window.Show();
         Relative.SetWidth(target, "20in");
@@ -75,7 +73,6 @@ public class AbsoluteUnitTest {
     public void Test_Absolute_Unit_Millimeter_Change_VisualAnchor() {
         Border target = new() { Width = 800, Height = 600 };
         Border anchor = new() { Width = 1440, Height = 900, Child = target };
-        ManualResetEvent wait = new(false);
         Window window = new() { Content = anchor };
         window.Show();
         Relative.SetWidth(target, "20mm");
@@ -101,7 +98,6 @@ public class AbsoluteUnitTest {
     public void Test_Absolute_Unit_Centimeter_Change_VisualAnchor() {
         Border target = new() { Width = 800, Height = 600 };
         Border anchor = new() { Width = 1440, Height = 900, Child = target };
-        ManualResetEvent wait = new(false);
         Window window = new() { Content = anchor };
         window.Show();
         Relative.SetWidth(target, "20cm");
