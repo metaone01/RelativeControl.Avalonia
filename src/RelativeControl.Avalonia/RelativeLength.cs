@@ -598,8 +598,7 @@ public sealed class RelativeLength : SingleRelativeLength {
 
     public override void SetVisualAnchor(Visual? anchor) {
         _visualAnchor.SetTarget(anchor);
-        SetSource();
-        Update();
+        Initialize();
     }
 
     protected override void InvokeIfChanged(double oldActualPixels, double newActualPixels) {
@@ -616,6 +615,10 @@ public sealed class RelativeLength : SingleRelativeLength {
             return;
         if (!_visualAnchor.TryGetTarget(out Visual? visual))
             return;
+        if (_source.TryGetTarget(out Visual? oldSource)) {
+            oldSource.PropertyChanged -= Update;
+        }
+
         if (Unit switch {
                 Units.TemplatedParentWidth  => visual.TemplatedParent as Visual,
                 Units.TemplatedParentHeight => visual.TemplatedParent as Visual,
@@ -629,9 +632,10 @@ public sealed class RelativeLength : SingleRelativeLength {
                 Units.ViewPortWidth         => TopLevel.GetTopLevel(visual),
                 Units.ViewPortHeight        => TopLevel.GetTopLevel(visual),
                 _                           => null
-            } is { } source)
+            } is { } source) {
             _source.SetTarget(source);
-        else
+            source.PropertyChanged += Update;
+        } else
             throw new InvalidOperationException($"Cannot find {visual}'s relative source.");
     }
 
@@ -654,8 +658,6 @@ public sealed class RelativeLength : SingleRelativeLength {
             visualAnchor.AttachedToVisualTree += UpdateOnAttachedToVisualTree;
         } else {
             SetSource();
-            if (Unit.IsRelative() && Source is { } source)
-                source.PropertyChanged += Update;
         }
 
         Update();
@@ -663,10 +665,9 @@ public sealed class RelativeLength : SingleRelativeLength {
 
     private void UpdateOnAttachedToVisualTree(object? sender, VisualTreeAttachmentEventArgs args) {
         SetSource();
-        if (Unit.IsRelative() && Source is { } source)
-            source.PropertyChanged += Update;
         Update();
-        VisualAnchor!.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
+        if (sender is Visual anchor)
+            anchor.AttachedToVisualTree -= UpdateOnAttachedToVisualTree;
     }
 
     protected override void Update(object? sender = null, AvaloniaPropertyChangedEventArgs? args = null) {
