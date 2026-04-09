@@ -21,13 +21,13 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore workloads
-        run: dotnet workload restore
+        run: dotnet workload restore ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
         
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
       
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build --no-restore --configuration Release ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
       
       - name: Run tests
         run: dotnet run --project ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
