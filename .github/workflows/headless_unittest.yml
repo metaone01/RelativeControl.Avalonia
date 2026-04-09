@@ -15,11 +15,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Setup .NET9
+      - name: Setup .NET10
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
-      
+          dotnet-version: 10.0.x
+
+      - name: Restore workloads
+        run: dotnet workload restore
+        
       - name: Restore dependencies
         run: dotnet restore
       
