@@ -1,8 +1,14 @@
 name: Publish To NuGet
 on:
-  push:
-    branches:
-      - main
+  on:
+    workflow_run:
+      workflows:
+        - API Unittest
+        - Headless Unittest
+      types:
+        - completed
+      branches:
+        - v11(LTS)
   workflow_dispatch:
 
 jobs:
