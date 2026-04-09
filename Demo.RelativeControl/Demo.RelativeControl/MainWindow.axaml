@@ -28,7 +28,7 @@
                     </ListBoxItem>
                     <ListBoxItem>
                         <TextBlock Name="Second"
-                                   Text="{r:RelativeBinding {Binding #First.Text},50%}"
+                                   Text="{Binding #First.Text,Converter={x:Static r:RelativeConverter.Instance},ConverterParameter={r:Scale 50%}}"
                                    r:Relative.Width="30pw"
                                    r:Relative.Height="5vh+20ph" />
                     </ListBoxItem>

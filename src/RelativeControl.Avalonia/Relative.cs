@@ -2,9 +2,9 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Data;
 using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
+using Avalonia.Metadata;
 using Avalonia.VisualTree;
 
 namespace RelativeControl.Avalonia;
@@ -465,27 +465,16 @@ public class Relative : AvaloniaObject {
     }
 }
 
-public class RelativeBinding(BindingBase sourceValue, string value) : MarkupExtension {
-    public readonly RelativeScale Scale = RelativeScale.Parse(value);
-    public readonly BindingBase SourceValue = sourceValue;
+public class Scale : MarkupExtension {
+    public Scale(string value) { Value = value; }
 
-    public override object ProvideValue(IServiceProvider serviceProvider) {
-        SourceValue.Converter = new RelativeConverter();
-        SourceValue.ConverterParameter = Scale;
-        return SourceValue;
+    [ConstructorArgument("value")]
+    public string Value {
+        set => _parsed = RelativeScale.Parse(value);
     }
-}
 
-public class OneTimeRelativeBinding(BindingBase sourceValue, string value) : MarkupExtension {
-    public readonly RelativeScale Scale = RelativeScale.Parse(value);
-    public readonly BindingBase SourceValue = sourceValue;
-
-    public override object ProvideValue(IServiceProvider serviceProvider) {
-        SourceValue.Mode = BindingMode.OneTime;
-        SourceValue.Converter = new RelativeConverter();
-        SourceValue.ConverterParameter = Scale;
-        return SourceValue;
-    }
+    private RelativeScale _parsed;
+    public override object ProvideValue(IServiceProvider serviceProvider) { return _parsed; }
 }
 
 public static class RelativeParseHelper {
@@ -502,7 +491,7 @@ public static class RelativeParseHelper {
         return value switch {
             RelativeExpression expression => RelativeThickness.Parse(expression.Expression, target),
             string s                      => RelativeThickness.Parse(s, target),
-            IRelative<Thickness> relative    => relative,
+            IRelative<Thickness> relative => relative,
             _                             => throw new InvalidCastException($"{value.GetType()} is not a valid type.")
         };
     }
@@ -510,9 +499,9 @@ public static class RelativeParseHelper {
     public static IRelative<CornerRadius> ParseToCornerRadius(Visual target, object value) {
         return value switch {
             RelativeExpression expression => RelativeCornerRadius.Parse(expression.Expression, target),
-            string s                      => RelativeCornerRadius.Parse(s, target),
-            IRelative<CornerRadius> relative    => relative,
-            _                             => throw new InvalidCastException($"{value.GetType()} is not a valid type.")
+            string s => RelativeCornerRadius.Parse(s, target),
+            IRelative<CornerRadius> relative => relative,
+            _ => throw new InvalidCastException($"{value.GetType()} is not a valid type.")
         };
     }
 }

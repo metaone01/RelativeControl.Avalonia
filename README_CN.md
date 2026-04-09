@@ -8,23 +8,6 @@
 
 [更多信息](API%20References.md)
 
-## 1.3.x中增加的新功能
-
-- 现在支持在Style Setter中使用相对单位
-
-```xaml
-<Style Selector="Button">
-    <Setter Property="r:Relative.Width" Value="20pw"/>
-</Style>
-```
-
-- 现在你可以为非Visual控件，但是有布局属性的实例使用相对单位
-
-```csharp
-var _object: AvaloniaObject = new();
-Relative.SetWidth(_object,"10pw",)    
-```
-
 ## 开始使用
 
 ### 添加NuGet包:
@@ -102,7 +85,7 @@ dotnet add package RelativeControl.Avalonia
 ### 为任意属性绑定相对值
 
 ```xaml
-<CONTROL PROPERTY="{r:RelativeBinding {Binding SOURCE_PROPERTY},50%}"/>
+<CONTROL PROPERTY="{Binding SOURCE_PROPERTY,Converter={x:Static r:RelativeConverter.Instance},ConverterParameter={r:Scale 50%}}"/>
 ```
 
 > 这会设定此`Property`的值为`SOURCE_PROPERTY`值的50%.
@@ -115,8 +98,9 @@ dotnet add package RelativeControl.Avalonia
 > `RelativeBindOneTime`只在控件附加到视觉树时更新一次。
 
 ### 为非Visual控件，但是有布局属性的实例使用相对单位
+
 > 实际上，此功能是将Source的搜索锚点由Target修改为VisualAnchor实现的。
-> 
+>
 > 此功能还可以用于让某个控件以另一个控件作为自己的相对源
 
 ```csharp
@@ -170,115 +154,4 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
            em: 字宽
            vw: 窗口宽度
            vh: 窗口高度
-            %: 百分比，仅用于RelativeBinding和RelativeBindOneTime
-
-## API最小可用版本
-
-### 0.0.5
-
-- Width
-- Height
-- MinWidth
-- MinHeight
-- MaxWidth
-- MaxHeight
-- BorderThickness
-- CornerRadius
-
-### 0.1.0
-
-- Margin
-- Padding
-
-### 1.0.0-alpha
-
-- RelativeBinding
-
-> 支持相对属性绑定 *[如何绑定自定义属性？](#为任意属性绑定相对值)*
-
-### 1.0.0-beta
-
-- SetOneTimeWidth
-- SetOneTimeHeight
-- RelativeBindOneTime
-
-> 这些属性仅会在自身控件附加到视觉树时更新一次
-
-## 破坏性变化
-
-### 0.2.1:
-
-除了`em`之外的所有相对单位均改为百分比计算。*使相对单位更接近CSS用法*
-
-```diff
-- <Button r:Relative.Width="0.5vw"/>
-+ <Button r:Relative.Width="50vw"/>
-```
-
-### 1.0.0-alpha:
-
-*将所有相对类型从 **Units.cs** 移至 **RelativeLength.cs***
-
-#### RelativeLength.cs:
-
-```diff
-+ public abstract class RelativeLengthBase
-
-- RelativeLength.RelativeLengthChanged (Rename)
-+ RelativeLengthBase.RelativeLengthChanged
-
-- RelativeLengthBase.OnRelativeLengthChanged (Rename)
-+ RelativeLengthBase.RelativeLengthChanged
-
-- RelativeMerge.Multiplier (Rename)
-+ RelativeLengthCollection.Scaler
-
-- SetTarget
-```
-
-#### RelativeThickness.cs:
-
-```diff
-- RelativeThicknessChanged (Rename)
-+ RelativeThicknessChangedHandler
-
-- OnRelativeThicknessChanged (Rename)
-+ RelativeThicknessChanged
-
-- SetTarget
-```
-
-#### RelativeSize.cs:
-
-```diff
-- RelativeSizeChanged (Rename)
-+ RelativeSizeChangedHandler
-
-- OnRelativeSizeChanged (Rename)
-+ RelativeSizeChanged
-
-- SetTarget
-```
-
-#### RelativeCornerRadius.cs:
-
-```diff
-- RelativeCornerRadiusChanged (Rename)
-+ RelativeCornerRadiusChangedHandler
-
-- OnRelativeCornerRadiusChanged (Rename)
-+ RelativeCornerRadiusChanged
-
-- SetTarget
-```
-
-### 1.0.0-beta:
-
-```diff
-- public event RelativeXXXChanged(T oldValue,T newValue);
-+ public event RelativeChanged<T>(IRelative<T> sender,RelativeChangedEventArgs<T> args);
-+ public class RelativeChangedEventArgs<T>(T oldValue, T newValue) : RelativeChangedEventArgs {
-+     public readonly T OldValue = oldValue;
-+     public readonly T NewValue = newValue;
-+ }
-```
+            %: 百分比，仅用于RelativeScale
