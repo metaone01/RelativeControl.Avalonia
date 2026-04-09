@@ -8,16 +8,6 @@ This provides some relative units and features for [Avalonia](https://github.com
 
 [More Info](API%20References.md)
 
-## New Features in 1.3.x
-- Now support using relatives in style setters.
-```xaml
-<Style Selector="Button">
-    <Setter Property="r:Relative.Width" Value="20pw"/>
-</Style>
-```
-- Now you can use a visual anchor to provide relative feature for objects which is non-visual but have layout properties.
-
-
 ## Get Started
 
 ### Add NuGet package:
@@ -97,7 +87,7 @@ Other properties using `RelativeThickness`:
 ### Bind any property
 
 ```xaml
-<CONTROL PROPERTY="{r:RelativeBinding {Binding SOURCE_PROPERTY},50%}"/>
+<CONTROL PROPERTY="{Binding SOURCE_PROPERTY,Converter={x:Static r:RelativeConverter.Instance},ConverterParameter={r:Scale 50%}}"/>
 ```
 
 > This will set the `PROPERTY`'s value to 50% of `SOURCE_PROPERTY`'s value.
@@ -154,115 +144,4 @@ public static readonly AttachedProperty<IRelative<T>> XXXProperty =
            em: The control's FontSize
            vw: Window's width
            vh: Window's height
-            %: Represents percentage. Only used for custom bindings. 
-
-## Minimum Available Version of an API
-
-### 0.0.5
-
-- Width
-- Height
-- MinWidth
-- MinHeight
-- MaxWidth
-- MaxHeight
-- BorderThickness
-- CornerRadius
-
-### 0.1.0
-
-- Margin
-- Padding
-
-### 1.0.0-alpha
-
-- RelativeBinding
-
-> You can bind any property! *[How to bind a custom property?](#bind-any-property)*
-
-### 1.0.0-beta
-
-- SetOneTimeWidth
-- SetOneTimeHeight
-- RelativeBindOneTime
-
-> These will update only once when the control is attached to visual tree!
-
-## Breaking Changes
-
-### 0.2.1:
-
-Relative units are using percentages (Excepts `em`). To make it more like *css*.
-
-```diff
-- <Button r:Relative.Width="0.5vw"/>
-+ <Button r:Relative.Width="50vw"/>
-```
-
-### 1.0.0-alpha:
-
-*Move all relative length from **Units.cs** to **RelativeLength.cs***
-
-#### RelativeLength.cs:
-
-```diff
-+ public abstract class RelativeLengthBase
-
-- RelativeLength.RelativeLengthChanged (Rename)
-+ RelativeLengthBase.RelativeLengthChanged
-
-- RelativeLengthBase.OnRelativeLengthChanged (Rename)
-+ RelativeLengthBase.RelativeLengthChanged
-
-- RelativeMerge.Multiplier (Rename)
-+ RelativeLengthCollection.Scaler
-
-- SetTarget
-```
-
-#### RelativeThickness.cs:
-
-```diff
-- RelativeThicknessChanged (Rename)
-+ RelativeThicknessChangedHandler
-
-- OnRelativeThicknessChanged (Rename)
-+ RelativeThicknessChanged
-
-- SetTarget
-```
-
-#### RelativeSize.cs:
-
-```diff
-- RelativeSizeChanged (Rename)
-+ RelativeSizeChangedHandler
-
-- OnRelativeSizeChanged (Rename)
-+ RelativeSizeChanged
-
-- SetTarget
-```
-
-#### RelativeCornerRadius.cs:
-
-```diff
-- RelativeCornerRadiusChanged (Rename)
-+ RelativeCornerRadiusChangedHandler
-
-- OnRelativeCornerRadiusChanged (Rename)
-+ RelativeCornerRadiusChanged
-
-- SetTarget
-```
-
-### 1.0.0-beta:
-
-```diff
-- public event RelativeXXXChanged(T oldValue,T newValue);
-+ public event RelativeChanged<T>(IRelative<T> sender,RelativeChangedEventArgs<T> args);
-+ public class RelativeChangedEventArgs<T>(T oldValue, T newValue) : RelativeChangedEventArgs {
-+     public readonly T OldValue = oldValue;
-+     public readonly T NewValue = newValue;
-+ }
-```
+            %: Represents percentage. Only used for RelativeScale.

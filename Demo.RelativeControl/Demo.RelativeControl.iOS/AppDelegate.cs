@@ -1,10 +1,6 @@
 using Foundation;
-using UIKit;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.iOS;
-using Avalonia.Media;
-using Avalonia.ReactiveUI;
 
 namespace Demo.RelativeControl.iOS;
 
@@ -17,6 +13,6 @@ public partial class AppDelegate : AvaloniaAppDelegate<App>
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
 {
     protected override AppBuilder CustomizeAppBuilder(AppBuilder builder) {
-        return base.CustomizeAppBuilder(builder).WithInterFont().UseReactiveUI();
+        return base.CustomizeAppBuilder(builder).WithInterFont();
     }
 }

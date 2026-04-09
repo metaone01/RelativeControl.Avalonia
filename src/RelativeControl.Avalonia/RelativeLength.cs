@@ -824,6 +824,8 @@ public readonly struct RelativeScale(double scale) {
 }
 
 public sealed class RelativeConverter : IValueConverter {
+    public static readonly RelativeConverter Instance = new();
+    
     public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture) {
         RelativeScale para = parameter switch {
             RelativeScale rs => rs,

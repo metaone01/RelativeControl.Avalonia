@@ -1,0 +1,33 @@
+﻿# 工作流的名称
+name: Headless Unittest
+
+# 触发工作流的事件：当代码推送到 main 分支或发起 pull request 时运行
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup .NET10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore workloads
+        run: dotnet workload restore ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
+        
+      - name: Restore dependencies
+        run: dotnet restore ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
+      
+      - name: Build
+        run: dotnet build --no-restore --configuration Release ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
+      
+      - name: Run tests
+        run: dotnet run --project ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj

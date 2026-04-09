@@ -1,7 +1,5 @@
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
 using Avalonia.Headless.XUnit;
-using Avalonia.VisualTree;
 using RelativeControl.Avalonia;
 
 namespace HeadlessTest.RelativeControl;
