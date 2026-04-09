@@ -7,7 +7,7 @@ on:
   workflow_dispatch: 
 
 jobs:
-  Tests:
+  tests:
     runs-on: ubuntu-latest
     
     steps:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Run tests
         run: dotnet run --project ./Test.RelativeControl/Test.RelativeControl.csproj
-  Headless Tests:
+  headless_tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -53,10 +53,10 @@ jobs:
 
       - name: Run tests
         run: dotnet run --project ./HeadlessTest.RelativeControl/HeadlessTest.RelativeControl.csproj
-  Publish to NuGet:
+  publish_to_nuget:
     needs:
-      - Tests
-      - Headless Tests
+      - tests
+      - headless_tests
     runs-on: ubuntu-latest
     steps:
       # 检出代码
@@ -75,10 +75,10 @@ jobs:
       # 发布到 NuGet.org
       - name: Publish Packages to NuGet
         run: dotnet nuget push ./src/RelativeControl.Avalonia/bin/Release/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
-  Publish to GitHub Package:
+  publish_to_github_package:
     needs:
-      - Tests
-      - Headless Tests
+      - tests
+      - headless_tests
     runs-on: ubuntu-latest
     steps:
       # 检出代码
